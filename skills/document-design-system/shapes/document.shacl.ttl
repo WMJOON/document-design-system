@@ -1,0 +1,66 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Document, DesignSystem and PresentationBinding shapes (SHACL Core).
+
+ddsh:DocumentShape a sh:NodeShape ;
+    sh:targetClass dds:Document ;
+    sh:property ddsh:Document-designSystem , ddsh:Document-component .
+
+ddsh:Document-designSystem a sh:PropertyShape ;
+    sh:path dds:usesDesignSystem ;
+    sh:minCount 1 ; sh:maxCount 1 ;
+    sh:class dds:DesignSystem ;
+    sh:message "Document must reference exactly one existing DesignSystem (typed dds:DesignSystem)."@en ,
+               "Document는 존재하는 DesignSystem(dds:DesignSystem 타입)을 정확히 하나 참조해야 한다."@ko .
+
+ddsh:Document-component a sh:PropertyShape ;
+    sh:path dds:hasComponent ;
+    sh:minCount 1 ;
+    sh:class dds:Component ;
+    sh:message "Document must contain at least one root Component (typed dds:Component)."@en ,
+               "Document는 루트 Component(dds:Component 타입)를 하나 이상 포함해야 한다."@ko .
+
+ddsh:DesignSystemShape a sh:NodeShape ;
+    sh:targetClass dds:DesignSystem ;
+    sh:property ddsh:DesignSystem-structure , ddsh:DesignSystem-semantic ,
+                ddsh:DesignSystem-presentation , ddsh:DesignSystem-binding .
+
+ddsh:DesignSystem-structure a sh:PropertyShape ;
+    sh:path dds:supportsStructure ; sh:minCount 1 ; sh:class dds:Structure ;
+    sh:message "DesignSystem must support at least one Structure, and every supported value must be a dds:Structure instance."@en ,
+               "DesignSystem은 Structure를 하나 이상 지원해야 하며, 값은 dds:Structure 인스턴스여야 한다."@ko .
+
+ddsh:DesignSystem-semantic a sh:PropertyShape ;
+    sh:path dds:supportsSemantic ; sh:class dds:Semantic ;
+    sh:message "supportsSemantic value must be a dds:Semantic instance."@en ,
+               "supportsSemantic 값은 dds:Semantic 인스턴스여야 한다."@ko .
+
+ddsh:DesignSystem-presentation a sh:PropertyShape ;
+    sh:path dds:supportsPresentation ; sh:class dds:Presentation ;
+    sh:message "supportsPresentation value must be a dds:Presentation instance."@en ,
+               "supportsPresentation 값은 dds:Presentation 인스턴스여야 한다."@ko .
+
+ddsh:DesignSystem-binding a sh:PropertyShape ;
+    sh:path dds:hasDefaultPresentation ; sh:node ddsh:PresentationBindingShape ;
+    sh:message "hasDefaultPresentation value must be a valid PresentationBinding."@en ,
+               "hasDefaultPresentation 값은 올바른 PresentationBinding이어야 한다."@ko .
+
+ddsh:PresentationBindingShape a sh:NodeShape ;
+    sh:targetClass dds:PresentationBinding ;
+    sh:property ddsh:Binding-structure , ddsh:Binding-presentation .
+
+ddsh:Binding-structure a sh:PropertyShape ;
+    sh:path dds:forStructure ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Structure ;
+    sh:message "PresentationBinding needs exactly one forStructure (dds:Structure)."@en ,
+               "PresentationBinding은 forStructure(dds:Structure)를 정확히 하나 가져야 한다."@ko .
+
+ddsh:Binding-presentation a sh:PropertyShape ;
+    sh:path dds:presentation ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Presentation ;
+    sh:message "PresentationBinding needs exactly one presentation (dds:Presentation)."@en ,
+               "PresentationBinding은 presentation(dds:Presentation)을 정확히 하나 가져야 한다."@ko .

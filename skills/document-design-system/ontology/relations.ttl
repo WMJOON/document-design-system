@@ -1,0 +1,33 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# Document
+dds:usesDesignSystem a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Document ; rdfs:range dds:DesignSystem .
+dds:hasComponent a owl:ObjectProperty ; rdfs:domain dds:Document ; rdfs:range dds:Component ;
+    rdfs:comment "Points to ROOT components only. Descendants are reached via dds:hasChild."@en .
+
+# DesignSystem
+dds:supportsStructure a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:Structure .
+dds:supportsSemantic a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:Semantic .
+dds:supportsPresentation a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:Presentation .
+dds:hasDefaultPresentation a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:PresentationBinding .
+
+# PresentationBinding
+dds:forStructure a owl:ObjectProperty ; rdfs:domain dds:PresentationBinding ; rdfs:range dds:Structure .
+dds:presentation a owl:ObjectProperty ; rdfs:domain dds:PresentationBinding ; rdfs:range dds:Presentation .
+
+# Component
+dds:hasStructure a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Component ; rdfs:range dds:Structure .
+dds:hasSemantic a owl:ObjectProperty ; rdfs:domain dds:Component ; rdfs:range dds:Semantic .
+dds:hasPresentation a owl:ObjectProperty ; rdfs:domain dds:Component ; rdfs:range dds:Presentation .
+dds:hasChild a owl:ObjectProperty , owl:InverseFunctionalProperty ; rdfs:domain dds:Component ; rdfs:range dds:Component ;
+    rdfs:comment "Recursive hierarchy. A component has at most one parent."@en .
+dds:hasOrder a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Component ; rdfs:range xsd:positiveInteger ;
+    rdfs:comment "Order among siblings (1..n). Validated by SHACL as integer >= 1."@en .
+dds:hasContent a owl:DatatypeProperty ; rdfs:domain dds:Component ; rdfs:range rdf:langString .
+dds:ordered a owl:DatatypeProperty ; rdfs:domain dds:Component ; rdfs:range xsd:boolean ;
+    rdfs:comment "On a List component: true = ordered (numbered) list."@en .

@@ -1,0 +1,19 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix c: <https://example.org/data/component/t/> .
+# EXPECT ddsh:UniqueSiblingOrderShape
+
+doc:t a dds:Document ; skos:prefLabel "Test"@en ;
+    dds:usesDesignSystem design:PlanningSystem ;
+    dds:hasComponent c:s1 .
+c:s1 a dds:Component ; dds:hasStructure structure:Section ; dds:hasOrder 1 ;
+    dds:hasChild c:h , c:p .
+c:h a dds:Component ; dds:hasStructure structure:Heading ; dds:hasOrder 1 ;
+    dds:hasContent "Title"@en .
+c:p a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 1 ;
+    dds:hasContent "Body text."@en .

@@ -1,0 +1,25 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+dds:Section a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "Logical division of a document. May contain any child Component."@en .
+dds:Heading a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "Title content. Its level is derived from Section nesting depth."@en .
+dds:Paragraph a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "Plain text paragraph."@en .
+dds:List a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "Ordered or unordered list. Children must be ListItem components."@en .
+dds:ListItem a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "One item of a List."@en .
+dds:Table a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "Tabular data. Children must be TableRow components; the first row is the header row."@en .
+dds:TableRow a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "One row of a Table. Children must be TableCell components."@en .
+dds:TableCell a owl:Class ; rdfs:subClassOf dds:Structure ;
+    rdfs:comment "One cell of a TableRow."@en .
+
+dds:Section owl:disjointWith dds:Heading, dds:Paragraph, dds:List, dds:ListItem, dds:Table, dds:TableRow, dds:TableCell .

@@ -1,0 +1,4 @@
+rdflib>=7.0
+pyshacl>=0.30
+PyYAML>=6.0
+pytest>=7.0

@@ -1,0 +1,14 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+dds:Requirement a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Something the system or process must satisfy."@en .
+dds:Policy      a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A governing rule or principle."@en .
+dds:Constraint  a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A limitation that bounds a solution."@en .
+dds:Decision    a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A choice that has been made."@en .
+dds:Evidence    a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Supporting fact or data."@en .
+dds:Assumption  a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Something taken as true without proof."@en .
+dds:Description a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Neutral explanatory content."@en .

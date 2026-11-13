@@ -1,0 +1,40 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# DDS core TBox — top-level classes. Do not add new top-level classes without approval.
+
+<https://example.org/ontology/dds> a owl:Ontology ;
+    rdfs:label "DDS — Document Design System"@en ;
+    owl:versionInfo "0.1.0" .
+
+dds:Document a owl:Class ;
+    rdfs:label "Document"@en ;
+    rdfs:comment "A concrete document instance that uses one DesignSystem and contains root Components."@en .
+
+dds:DesignSystem a owl:Class ;
+    rdfs:label "DesignSystem"@en ;
+    rdfs:comment "A reusable set of supported Structures, Semantics and Presentations."@en .
+
+dds:Component a owl:Class ;
+    rdfs:label "Component"@en ;
+    rdfs:comment "An individual building block of a document. Holds the actual content."@en .
+
+dds:Structure a owl:Class ;
+    rdfs:label "Structure"@en ;
+    rdfs:comment "Information-structure / content type. Carries no visual design."@en .
+
+dds:Semantic a owl:Class ;
+    rdfs:label "Semantic"@en ;
+    rdfs:comment "Semantic role of content, independent of any document format."@en .
+
+dds:Presentation a owl:Class ;
+    rdfs:label "Presentation"@en ;
+    rdfs:comment "Visual presentation of content, independent of Structure."@en .
+
+dds:PresentationBinding a owl:Class ;
+    rdfs:label "PresentationBinding"@en ;
+    rdfs:comment "DesignSystem-scoped default Presentation for one Structure type."@en .

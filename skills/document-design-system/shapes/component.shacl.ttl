@@ -1,0 +1,56 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Component shapes (SHACL Core). Targets also catch untyped components that use component properties.
+
+ddsh:ComponentShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:targetSubjectsOf dds:hasStructure , dds:hasOrder , dds:hasContent ;
+    sh:targetObjectsOf dds:hasChild , dds:hasComponent ;
+    sh:class dds:Component ;
+    sh:message "Node used as a component must be typed dds:Component."@en ,
+               "컴포넌트로 쓰인 노드는 dds:Component 타입이어야 한다."@ko ;
+    sh:property ddsh:Component-structure , ddsh:Component-semantic , ddsh:Component-presentation ,
+                ddsh:Component-order , ddsh:Component-content , ddsh:Component-child , ddsh:Component-ordered .
+
+ddsh:Component-structure a sh:PropertyShape ;
+    sh:path dds:hasStructure ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Structure ;
+    sh:message "Component must have exactly one Structure (dds:Structure instance)."@en ,
+               "Component는 Structure(dds:Structure 인스턴스)를 정확히 하나 가져야 한다."@ko .
+
+ddsh:Component-semantic a sh:PropertyShape ;
+    sh:path dds:hasSemantic ; sh:class dds:Semantic ;
+    sh:message "hasSemantic value must be a dds:Semantic instance."@en ,
+               "hasSemantic 값은 dds:Semantic 인스턴스여야 한다."@ko .
+
+ddsh:Component-presentation a sh:PropertyShape ;
+    sh:path dds:hasPresentation ; sh:maxCount 1 ; sh:class dds:Presentation ;
+    sh:message "Component may have at most one Presentation (dds:Presentation instance)."@en ,
+               "Component의 Presentation은 0개 또는 1개(dds:Presentation 인스턴스)여야 한다."@ko .
+
+ddsh:Component-order a sh:PropertyShape ;
+    sh:path dds:hasOrder ; sh:minCount 1 ; sh:maxCount 1 ;
+    sh:or ( [ sh:datatype xsd:integer ] [ sh:datatype xsd:positiveInteger ] ) ;
+    sh:minInclusive 1 ;
+    sh:message "Component must have exactly one hasOrder, a positive integer."@en ,
+               "Component의 hasOrder는 정확히 하나의 양의 정수여야 한다."@ko .
+
+ddsh:Component-content a sh:PropertyShape ;
+    sh:path dds:hasContent ; sh:maxCount 1 ; sh:datatype rdf:langString ;
+    sh:message "hasContent must be a single language-tagged string (rdf:langString)."@en ,
+               "hasContent는 언어 태그가 있는 문자열(rdf:langString) 하나여야 한다."@ko .
+
+ddsh:Component-child a sh:PropertyShape ;
+    sh:path dds:hasChild ; sh:class dds:Component ;
+    sh:message "hasChild value must be a dds:Component."@en ,
+               "hasChild 값은 dds:Component여야 한다."@ko .
+
+ddsh:Component-ordered a sh:PropertyShape ;
+    sh:path dds:ordered ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
+    sh:message "dds:ordered must be a single xsd:boolean."@en ,
+               "dds:ordered는 xsd:boolean 하나여야 한다."@ko .

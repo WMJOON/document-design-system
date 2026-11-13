@@ -1,0 +1,17 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+dds:Typography a owl:Class ; rdfs:subClassOf dds:Presentation ;
+    rdfs:comment "Font size, weight, line height, typeface token."@en .
+dds:Layout a owl:Class ; rdfs:subClassOf dds:Presentation ;
+    rdfs:comment "Alignment, spacing, margins."@en .
+dds:Style a owl:Class ; rdfs:subClassOf dds:Presentation ;
+    rdfs:comment "Colour, background, border."@en .
+
+dds:token a owl:DatatypeProperty ;
+    rdfs:domain dds:Presentation ; rdfs:range xsd:string ;
+    rdfs:comment "Key into an external design-token / renderer mapping file (e.g. config/presentation-markdown.yaml)."@en .

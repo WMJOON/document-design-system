@@ -1,0 +1,66 @@
+# DDS compose spec — planning document template (fictional example).
+# Every component should carry an explicit, stable `id` (it becomes part of the IRI).
+# List `items` and Table `rows` are shorthands; their ids are positional ({parent}-i1, {parent}-r1-c1)
+# unless you give an explicit id per item/row/cell.
+base: https://example.org/data/
+lang: ko
+document:
+  id: ai-support-proposal
+  title: AI 상담 시스템 기획안
+  design_system: PlanningSystem
+  components:
+    - id: overview
+      structure: Section
+      children:
+        - id: overview-title
+          structure: Heading
+          content: 프로젝트 개요
+        - id: overview-desc
+          structure: Paragraph
+          semantic: Description
+          content: 고객 환불 문의를 1차로 응대하는 AI 상담 시스템을 구축한다.
+        - id: REQ001
+          structure: Paragraph
+          semantic: Requirement
+          presentation: Callout
+          content: 환불 가능 여부를 판단해야 한다.
+    - id: scope
+      structure: Section
+      children:
+        - id: scope-title
+          structure: Heading
+          content: 범위와 제약
+        - id: scope-list
+          structure: List
+          ordered: true
+          items:
+            - id: CON001
+              content: 개인정보는 마스킹된 상태로만 처리한다.
+              semantic: [Constraint, Policy]
+            - content: 1차 범위는 환불 문의로 한정한다.
+        - id: scope-detail
+          structure: Section
+          children:
+            - id: scope-detail-title
+              structure: Heading
+              content: 가정과 근거
+            - id: ASM001
+              structure: Paragraph
+              semantic: Assumption
+              presentation: Emphasis
+              content: 상담 이력 데이터는 6개월치가 확보되어 있다.
+    - id: decisions
+      structure: Section
+      children:
+        - id: decisions-title
+          structure: Heading
+          content: 의사결정 기록
+        - id: decision-table
+          structure: Table
+          rows:
+            - [항목, 결정, 근거]
+            - - 모델 호스팅
+              - content: 사내 호스팅
+                semantic: Decision
+              - content: 데이터 반출 금지 정책
+                semantic: Evidence

@@ -1,0 +1,59 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix design: <https://example.org/data/design/> .
+
+# Reusable type / style individuals (ABox). Classes live in ontology/*.ttl (no punning).
+
+structure:Section   a dds:Section   ; skos:prefLabel "Section"@en .
+structure:Heading   a dds:Heading   ; skos:prefLabel "Heading"@en .
+structure:Paragraph a dds:Paragraph ; skos:prefLabel "Paragraph"@en .
+structure:List      a dds:List      ; skos:prefLabel "List"@en .
+structure:ListItem  a dds:ListItem  ; skos:prefLabel "List item"@en .
+structure:Table     a dds:Table     ; skos:prefLabel "Table"@en .
+structure:TableRow  a dds:TableRow  ; skos:prefLabel "Table row"@en .
+structure:TableCell a dds:TableCell ; skos:prefLabel "Table cell"@en .
+
+semantic:Requirement a dds:Requirement ; skos:prefLabel "Requirement"@en .
+semantic:Policy      a dds:Policy      ; skos:prefLabel "Policy"@en .
+semantic:Constraint  a dds:Constraint  ; skos:prefLabel "Constraint"@en .
+semantic:Decision    a dds:Decision    ; skos:prefLabel "Decision"@en .
+semantic:Evidence    a dds:Evidence    ; skos:prefLabel "Evidence"@en .
+semantic:Assumption  a dds:Assumption  ; skos:prefLabel "Assumption"@en .
+semantic:Description a dds:Description ; skos:prefLabel "Description"@en .
+
+presentation:Heading1  a dds:Typography ; skos:prefLabel "Heading 1"@en ; dds:token "heading-1" .
+presentation:Heading2  a dds:Typography ; skos:prefLabel "Heading 2"@en ; dds:token "heading-2" .
+presentation:Body      a dds:Typography ; skos:prefLabel "Body"@en ; dds:token "body" .
+presentation:Emphasis  a dds:Typography ; skos:prefLabel "Emphasis"@en ; dds:token "emphasis" .
+presentation:Callout   a dds:Style      ; skos:prefLabel "Callout"@en ; dds:token "callout" .
+presentation:Compact   a dds:Layout     ; skos:prefLabel "Compact"@en ; dds:token "compact" .
+
+# Planning design system ------------------------------------------------------
+design:PlanningSystem a dds:DesignSystem ;
+    skos:prefLabel "Planning Design System"@en ;
+    dds:supportsStructure structure:Section , structure:Heading , structure:Paragraph ,
+        structure:List , structure:ListItem , structure:Table , structure:TableRow , structure:TableCell ;
+    dds:supportsSemantic semantic:Requirement , semantic:Policy , semantic:Constraint ,
+        semantic:Decision , semantic:Evidence , semantic:Assumption , semantic:Description ;
+    dds:supportsPresentation presentation:Heading1 , presentation:Heading2 , presentation:Body ,
+        presentation:Emphasis , presentation:Callout ;
+    dds:hasDefaultPresentation design:PlanningSystem-Heading , design:PlanningSystem-Paragraph .
+
+design:PlanningSystem-Heading a dds:PresentationBinding ;
+    dds:forStructure structure:Heading ; dds:presentation presentation:Heading1 .
+design:PlanningSystem-Paragraph a dds:PresentationBinding ;
+    dds:forStructure structure:Paragraph ; dds:presentation presentation:Body .
+
+# Minimal text-only design system (no lists / tables) -------------------------
+design:MemoSystem a dds:DesignSystem ;
+    skos:prefLabel "Memo Design System"@en ;
+    dds:supportsStructure structure:Section , structure:Heading , structure:Paragraph ;
+    dds:supportsSemantic semantic:Description , semantic:Decision ;
+    dds:supportsPresentation presentation:Body ;
+    dds:hasDefaultPresentation design:MemoSystem-Paragraph .
+
+design:MemoSystem-Paragraph a dds:PresentationBinding ;
+    dds:forStructure structure:Paragraph ; dds:presentation presentation:Body .

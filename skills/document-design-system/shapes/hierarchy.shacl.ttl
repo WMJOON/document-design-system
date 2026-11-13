@@ -1,0 +1,244 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Hierarchy, content-policy and DesignSystem-support rules (SHACL-SPARQL).
+# Validation runs WITHOUT inference; the TBox (rdfs:subClassOf) is merged into the data graph,
+# so `a/rdfs:subClassOf*` resolves Structure subclasses.
+
+<https://example.org/ontology/dds/shapes> a owl:Ontology ;
+    sh:declare
+        [ sh:prefix "dds" ; sh:namespace "https://example.org/ontology/dds#"^^xsd:anyURI ] ,
+        [ sh:prefix "rdf" ; sh:namespace "http://www.w3.org/1999/02/22-rdf-syntax-ns#"^^xsd:anyURI ] ,
+        [ sh:prefix "rdfs" ; sh:namespace "http://www.w3.org/2000/01/rdf-schema#"^^xsd:anyURI ] .
+
+# ---------------------------------------------------------------- hierarchy
+ddsh:NoCycleShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Cyclic hasChild: component {$this} is its own descendant."@en ,
+                   "hasChild 순환 참조: 컴포넌트 {$this}가 자기 자신의 하위에 있다."@ko ;
+        sh:select """
+            SELECT $this WHERE { $this dds:hasChild+ $this . }
+        """ ] .
+
+ddsh:SingleParentShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Component has more than one parent ({?p1}, {?p2}). A component belongs to exactly one Document root list or one parent component."@en ,
+                   "컴포넌트의 부모가 둘 이상이다({?p1}, {?p2}). 컴포넌트는 문서 루트 또는 부모 컴포넌트 하나에만 속한다."@ko ;
+        sh:select """
+            SELECT $this ?p1 ?p2 WHERE {
+                { ?p1 dds:hasChild $this } UNION { ?p1 dds:hasComponent $this }
+                { ?p2 dds:hasChild $this } UNION { ?p2 dds:hasComponent $this }
+                FILTER (STR(?p1) < STR(?p2))
+            }
+        """ ] .
+
+ddsh:ReachableShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Orphan component: not reachable from any Document via hasComponent/hasChild*."@en ,
+                   "고아 컴포넌트: 어떤 Document에서도 hasComponent/hasChild*로 도달할 수 없다."@ko ;
+        sh:select """
+            SELECT $this WHERE {
+                FILTER NOT EXISTS { ?doc a dds:Document ; dds:hasComponent/dds:hasChild* $this . }
+            }
+        """ ] .
+
+ddsh:UniqueSiblingOrderShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Duplicate hasOrder {?value} among siblings of {?parent} (also used by {?other})."@en ,
+                   "같은 부모 {?parent} 아래 형제 컴포넌트의 hasOrder {?value}가 중복된다({?other})."@ko ;
+        sh:select """
+            SELECT $this ?parent ?other ?value WHERE {
+                { ?parent dds:hasChild $this , ?other . }
+                UNION
+                { ?parent dds:hasComponent $this , ?other . }
+                FILTER (?other != $this)
+                $this dds:hasOrder ?value .
+                ?other dds:hasOrder ?o2 .
+                FILTER (?value = ?o2)
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- container policy
+# Section -> any; List -> ListItem; Table -> TableRow; TableRow -> TableCell; others -> no children.
+ddsh:ContainerPolicyShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Container policy violated: child {?value} (structure {?cs}) is not allowed under structure {?ps}."@en ,
+                   "컨테이너 정책 위반: 구조 {?ps} 아래에 자식 {?value}(구조 {?cs})를 둘 수 없다."@ko ;
+        sh:select """
+            SELECT $this ?value ?ps ?cs WHERE {
+                $this dds:hasChild ?value ;
+                      dds:hasStructure ?ps .
+                OPTIONAL { ?value dds:hasStructure ?cs . }
+                FILTER NOT EXISTS { ?ps a/rdfs:subClassOf* dds:Section . }
+                FILTER NOT EXISTS { ?ps a/rdfs:subClassOf* dds:List .     ?cs a/rdfs:subClassOf* dds:ListItem . }
+                FILTER NOT EXISTS { ?ps a/rdfs:subClassOf* dds:Table .    ?cs a/rdfs:subClassOf* dds:TableRow . }
+                FILTER NOT EXISTS { ?ps a/rdfs:subClassOf* dds:TableRow . ?cs a/rdfs:subClassOf* dds:TableCell . }
+            }
+        """ ] .
+
+ddsh:ItemParentShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Component with structure kind {?kind} must be a child of a {?parentKind} component."@en ,
+                   "{?kind} 구조의 컴포넌트는 {?parentKind} 구조 컴포넌트의 자식이어야 한다."@ko ;
+        sh:select """
+            SELECT $this ?kind ?parentKind WHERE {
+                {   $this dds:hasStructure/a/rdfs:subClassOf* dds:ListItem .
+                    BIND (dds:ListItem AS ?kind) BIND (dds:List AS ?parentKind) }
+                UNION
+                {   $this dds:hasStructure/a/rdfs:subClassOf* dds:TableRow .
+                    BIND (dds:TableRow AS ?kind) BIND (dds:Table AS ?parentKind) }
+                UNION
+                {   $this dds:hasStructure/a/rdfs:subClassOf* dds:TableCell .
+                    BIND (dds:TableCell AS ?kind) BIND (dds:TableRow AS ?parentKind) }
+                FILTER NOT EXISTS { ?p dds:hasChild $this ; dds:hasStructure/a/rdfs:subClassOf* ?parentKind . }
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- content policy
+ddsh:ContentRequiredShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Component with structure kind {?kind} must have hasContent."@en ,
+                   "{?kind} 구조의 컴포넌트는 hasContent가 필요하다."@ko ;
+        sh:select """
+            SELECT $this ?kind WHERE {
+                $this dds:hasStructure/a/rdfs:subClassOf* ?kind .
+                FILTER (?kind IN (dds:Heading, dds:Paragraph, dds:ListItem, dds:TableCell))
+                FILTER NOT EXISTS { $this dds:hasContent ?c . }
+            }
+        """ ] .
+
+ddsh:ContentForbiddenShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Container component (structure kind {?kind}) must not carry hasContent; put text in child components."@en ,
+                   "컨테이너 컴포넌트({?kind})는 hasContent를 가질 수 없다. 텍스트는 자식 컴포넌트에 둔다."@ko ;
+        sh:select """
+            SELECT $this ?kind ?value WHERE {
+                $this dds:hasStructure/a/rdfs:subClassOf* ?kind ;
+                      dds:hasContent ?value .
+                FILTER (?kind IN (dds:Section, dds:List, dds:Table, dds:TableRow))
+            }
+        """ ] .
+
+ddsh:OrderedOnlyOnListShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "dds:ordered is only allowed on List components."@en ,
+                   "dds:ordered는 List 컴포넌트에만 쓸 수 있다."@ko ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dds:ordered ?value .
+                FILTER NOT EXISTS { $this dds:hasStructure/a/rdfs:subClassOf* dds:List . }
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- DesignSystem support
+ddsh:SupportedStructureShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Structure {?value} is not supported by DesignSystem {?ds} used by Document {?doc}."@en ,
+                   "Structure {?value}는 Document {?doc}가 쓰는 DesignSystem {?ds}에서 지원하지 않는다."@ko ;
+        sh:select """
+            SELECT $this ?value ?ds ?doc WHERE {
+                ?doc a dds:Document ; dds:usesDesignSystem ?ds ; dds:hasComponent/dds:hasChild* $this .
+                ?ds a dds:DesignSystem .
+                $this dds:hasStructure ?value .
+                FILTER NOT EXISTS { ?ds dds:supportsStructure ?value . }
+            }
+        """ ] .
+
+ddsh:SupportedSemanticShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Semantic {?value} is not supported by DesignSystem {?ds} used by Document {?doc}."@en ,
+                   "Semantic {?value}는 Document {?doc}가 쓰는 DesignSystem {?ds}에서 지원하지 않는다."@ko ;
+        sh:select """
+            SELECT $this ?value ?ds ?doc WHERE {
+                ?doc a dds:Document ; dds:usesDesignSystem ?ds ; dds:hasComponent/dds:hasChild* $this .
+                ?ds a dds:DesignSystem .
+                $this dds:hasSemantic ?value .
+                FILTER NOT EXISTS { ?ds dds:supportsSemantic ?value . }
+            }
+        """ ] .
+
+ddsh:SupportedPresentationShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Presentation {?value} is not supported by DesignSystem {?ds} used by Document {?doc}."@en ,
+                   "Presentation {?value}는 Document {?doc}가 쓰는 DesignSystem {?ds}에서 지원하지 않는다."@ko ;
+        sh:select """
+            SELECT $this ?value ?ds ?doc WHERE {
+                ?doc a dds:Document ; dds:usesDesignSystem ?ds ; dds:hasComponent/dds:hasChild* $this .
+                ?ds a dds:DesignSystem .
+                $this dds:hasPresentation ?value .
+                FILTER NOT EXISTS { ?ds dds:supportsPresentation ?value . }
+            }
+        """ ] .
+
+ddsh:BindingSupportedShape a sh:NodeShape ;
+    sh:targetClass dds:DesignSystem ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Default PresentationBinding uses {?value}, which this DesignSystem does not support."@en ,
+                   "기본 PresentationBinding이 이 DesignSystem에서 지원하지 않는 {?value}를 쓴다."@ko ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dds:hasDefaultPresentation ?b .
+                { ?b dds:presentation ?value . FILTER NOT EXISTS { $this dds:supportsPresentation ?value . } }
+                UNION
+                { ?b dds:forStructure ?value . FILTER NOT EXISTS { $this dds:supportsStructure ?value . } }
+            }
+        """ ] .
+
+ddsh:UniqueBindingShape a sh:NodeShape ;
+    sh:targetClass dds:DesignSystem ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "More than one default PresentationBinding for structure {?value}."@en ,
+                   "Structure {?value}에 대한 기본 PresentationBinding이 둘 이상이다."@ko ;
+        sh:select """
+            SELECT DISTINCT $this ?value WHERE {
+                $this dds:hasDefaultPresentation ?b1 , ?b2 .
+                FILTER (?b1 != ?b2)
+                ?b1 dds:forStructure ?value .
+                ?b2 dds:forStructure ?value .
+            }
+        """ ] .

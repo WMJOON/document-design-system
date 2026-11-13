@@ -1,0 +1,12 @@
+# Presentation token -> Markdown rendering rule.
+# Heading level is STRUCTURAL (derived from Section depth), never from Presentation.
+# Supported keys per token: wrap (inline wrapper), prefix (line prefix).
+tokens:
+  heading-1: {}
+  heading-2: {}
+  body: {}
+  emphasis:
+    wrap: "**"
+  callout:
+    prefix: "> "
+  compact: {}
