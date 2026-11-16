@@ -1,4 +1,4 @@
-from _util import EXAMPLE, FIXTURES, run
+from _util import EXAMPLE, FIXTURES, PROPOSAL, run
 
 from rdflib import URIRef
 
@@ -20,10 +20,8 @@ def test_order_and_heading_levels():
     assert lines.index("## 프로젝트 개요") < lines.index("환불 가능 여부를 판단해야 한다.") < lines.index("## 범위")
 
 
-def test_heading_level_comes_from_section_depth(tmp_path):
-    out = tmp_path / "doc.ttl"
-    assert run("compose.py", FIXTURES.parent.parent / "templates" / "planning-document.yaml", "-o", out).returncode == 0
-    md = render(load_data([out]), URIRef("https://example.org/data/doc/ai-support-proposal"), annotate=False)
+def test_heading_level_comes_from_section_depth():
+    md = render(load_data([PROPOSAL]), URIRef("https://example.org/data/doc/ai-support-proposal"), annotate=False)
     assert "## 범위와 제약" in md and "### 가정과 근거" in md  # nested Section -> H3
     assert "1. 개인정보는 마스킹된 상태로만 처리한다." in md
     assert "| 항목 | 결정 | 근거 |\n|---|---|---|\n| 모델 호스팅 |" in md

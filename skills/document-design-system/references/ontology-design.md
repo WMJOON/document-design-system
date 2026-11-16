@@ -35,7 +35,7 @@ individuals (`dds:hasStructure structure:Heading`), never at classes. You can ad
 - `Document dds:hasComponent` points to **root** components only. Descendants use `dds:hasChild`.
 - Every component has exactly one parent (a Document or a component) and is reachable from a Document.
 - `dds:hasOrder` is a 1-based position among siblings (TBox range `xsd:positiveInteger`; SHACL accepts
-  `xsd:integer` ≥ 1 because Turtle `1` is `xsd:integer`). compose and parse normalise orders to 1..n.
+  `xsd:integer` ≥ 1 because Turtle `1` is `xsd:integer`). the builder and parse normalise orders to 1..n.
 - Container policy:
 
 | Parent structure | Allowed children | hasContent |

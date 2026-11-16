@@ -1,22 +1,21 @@
-import yaml
-from _util import EXAMPLE, FIXTURES, TEMPLATE, run
+from _util import EXAMPLE, FIXTURES, PROPOSAL, run
 
 from rdflib import Graph, Literal, URIRef
 from rdflib.compare import isomorphic
 from rdflib.namespace import XSD
 
-from dds_lib.compose import compose
 from dds_lib.graph import DDS, load_data, merge, validate_graph
 from dds_lib.markdown import parse, render
 from dds_lib.model import component_kind, documents
 
 
-def _spec():
-    return yaml.safe_load(TEMPLATE.read_text(encoding="utf-8"))
+def _proposal():
+    g = Graph().parse(PROPOSAL)
+    return g, documents(g)[0]
 
 
 def test_ttl_markdown_ttl_is_isomorphic():
-    g0, doc, _ = compose(_spec())
+    g0, doc = _proposal()
     md = render(merge(g0), doc)
     g1, doc1 = parse(md)
     assert doc1 == doc
@@ -25,7 +24,7 @@ def test_ttl_markdown_ttl_is_isomorphic():
 
 
 def test_roundtrip_preserves_language_and_ordered():
-    g0, doc, _ = compose(_spec())
+    g0, doc = _proposal()
     g1, _ = parse(render(merge(g0), doc))
     langs = {o.language for o in g1.objects(None, DDS.hasContent)}
     assert langs == {"ko"}
@@ -63,36 +62,11 @@ def test_plain_markdown_parses_structurally(tmp_path):
     assert any(component_kind(full, c) == "Section" for c in g.objects(s1, DDS.hasChild))
 
 
-def test_compose_iris_stable_across_runs_and_content_edits():
-    g1, _, _ = compose(_spec())
-    spec = _spec()
-    spec["document"]["components"][0]["children"][2]["content"] = "환불 가능 여부와 금액을 판단해야 한다."
-    g2, _, _ = compose(spec)
-    comps = lambda g: set(g.subjects(DDS.hasStructure, None))  # noqa: E731
-    assert comps(g1) == comps(g2)
-    req = URIRef("https://example.org/data/component/ai-support-proposal/REQ001")
-    assert "금액" in str(g2.value(req, DDS.hasContent))
-
-
-def test_write_ids_persists_generated_ids(tmp_path):
-    spec = tmp_path / "s.yaml"
-    spec.write_text(
-        "document:\n  id: d\n  title: T\n  design_system: PlanningSystem\n  components:\n"
-        "    - structure: Paragraph\n      content: hello\n", encoding="utf-8")
-    out1, out2 = tmp_path / "a.ttl", tmp_path / "b.ttl"
-    r = run("compose.py", spec, "-o", out1)
-    assert r.returncode == 0 and "warning: generated" in r.stderr
-    assert "c-" not in spec.read_text()  # default: user file untouched
-    assert run("compose.py", spec, "-o", out1, "--write-ids").returncode == 0
-    assert "id: c-" in spec.read_text()
-    assert run("compose.py", spec, "-o", out2).returncode == 0
-    s = lambda p: set(Graph().parse(p).subjects(DDS.hasStructure, None))  # noqa: E731
-    assert s(out1) == s(out2)
 
 
 def test_cli_pipeline(tmp_path):
     ttl, md, back, js = (tmp_path / n for n in ("d.ttl", "d.md", "back.ttl", "d.jsonld"))
-    assert run("compose.py", TEMPLATE, "-o", ttl).returncode == 0
+    ttl.write_text(PROPOSAL.read_text(encoding="utf-8"), encoding="utf-8")
     assert run("render.py", ttl, "-o", md).returncode == 0
     assert run("parse.py", md, "-o", back).returncode == 0
     assert isomorphic(Graph().parse(ttl), Graph().parse(back))
@@ -100,17 +74,9 @@ def test_cli_pipeline(tmp_path):
     assert len(Graph().parse(js, format="json-ld")) == len(Graph().parse(ttl))
 
 
-def test_compose_rejects_duplicate_ids(tmp_path):
-    spec = tmp_path / "dup.yaml"
-    spec.write_text(
-        "document:\n  id: d\n  design_system: PlanningSystem\n  components:\n"
-        "    - {id: x, structure: Paragraph, content: a}\n    - {id: x, structure: Paragraph, content: b}\n")
-    r = run("compose.py", spec)
-    assert r.returncode == 2 and "duplicate component id" in r.stderr
-
 
 def _rendered_template():
-    g0, doc, _ = compose(_spec())
+    g0, doc = _proposal()
     return g0, render(merge(g0), doc)
 
 

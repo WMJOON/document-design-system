@@ -1,0 +1,34 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix component: <https://example.org/data/component/> .
+
+# DDS default skeleton — MemoSystem (text only: Section/Heading/Paragraph; no List, no Table).
+# Use: copy, replace `new-doc` with your document id (sed 's#new-doc#my-id#g'),
+# replace every «...» placeholder. Same rules as default-planning.ttl.
+
+doc:new-doc a dds:Document ;
+    skos:prefLabel "«메모 제목»"@ko ;
+    dds:usesDesignSystem design:MemoSystem ;
+    dds:hasComponent component:new-doc\/summary , component:new-doc\/decision .
+
+component:new-doc\/summary a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 1 ;
+    dds:hasChild component:new-doc\/summary-title , component:new-doc\/summary-body .
+component:new-doc\/summary-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "요약"@ko .
+component:new-doc\/summary-body a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Description ; dds:hasOrder 2 ;
+    dds:hasContent "«핵심 내용을 적는다»"@ko .
+
+component:new-doc\/decision a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 2 ;
+    dds:hasChild component:new-doc\/decision-title , component:new-doc\/DEC001 .
+component:new-doc\/decision-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "결정"@ko .
+component:new-doc\/DEC001 a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Decision ; dds:hasOrder 2 ;
+    dds:hasContent "«결정한 내용»"@ko .

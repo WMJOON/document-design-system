@@ -1,0 +1,64 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix component: <https://example.org/data/component/> .
+
+# Component library for PlanningSystem (ABox, validated like any document).
+# Each root component below is a reusable *prototype*: its structure, semantics and
+# presentation are fixed here; scripts/gen_builder.py turns each one into a builder
+# function named after the local id (planning-lib/<name>), found anywhere in the tree.
+# Containers (section, bullet_list, table) take children at build time; leaves take content.
+# Placeholder content is ignored. Item/row/cell prototypes sit under their container so the
+# library itself passes SHACL. Mark the plain default item/cell by giving it no semantic.
+# To add a component: add a root here (keep hasOrder unique), validate, regenerate the builder.
+
+doc:planning-lib a dds:Document ;
+    skos:prefLabel "Planning component library"@en ;
+    dds:usesDesignSystem design:PlanningSystem ;
+    dds:hasComponent component:planning-lib\/section , component:planning-lib\/heading ,
+        component:planning-lib\/description , component:planning-lib\/requirement ,
+        component:planning-lib\/assumption , component:planning-lib\/decision_note ,
+        component:planning-lib\/bullet_list , component:planning-lib\/table .
+
+component:planning-lib\/section a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 1 .
+component:planning-lib\/heading a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 2 ; dds:hasContent "heading"@en .
+component:planning-lib\/description a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Description ; dds:hasOrder 3 ;
+    dds:hasContent "description"@en .
+component:planning-lib\/requirement a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Requirement ;
+    dds:hasPresentation presentation:Callout ; dds:hasOrder 4 ; dds:hasContent "requirement"@en .
+component:planning-lib\/assumption a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Assumption ;
+    dds:hasPresentation presentation:Emphasis ; dds:hasOrder 5 ; dds:hasContent "assumption"@en .
+component:planning-lib\/decision_note a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Decision ; dds:hasOrder 6 ;
+    dds:hasContent "decision"@en .
+component:planning-lib\/bullet_list a dds:Component ;
+    dds:hasStructure structure:List ; dds:ordered false ; dds:hasOrder 7 ;
+    dds:hasChild component:planning-lib\/list_item , component:planning-lib\/constraint_item .
+component:planning-lib\/list_item a dds:Component ;
+    dds:hasStructure structure:ListItem ; dds:hasOrder 1 ; dds:hasContent "item"@en .
+component:planning-lib\/constraint_item a dds:Component ;
+    dds:hasStructure structure:ListItem ; dds:hasSemantic semantic:Constraint ; dds:hasOrder 2 ;
+    dds:hasContent "constraint"@en .
+component:planning-lib\/table a dds:Component ;
+    dds:hasStructure structure:Table ; dds:hasOrder 8 ;
+    dds:hasChild component:planning-lib\/table_row .
+component:planning-lib\/table_row a dds:Component ;
+    dds:hasStructure structure:TableRow ; dds:hasOrder 1 ;
+    dds:hasChild component:planning-lib\/cell , component:planning-lib\/decision_cell , component:planning-lib\/evidence_cell .
+component:planning-lib\/cell a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasOrder 1 ; dds:hasContent "cell"@en .
+component:planning-lib\/decision_cell a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasSemantic semantic:Decision ; dds:hasOrder 2 ;
+    dds:hasContent "decision"@en .
+component:planning-lib\/evidence_cell a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasSemantic semantic:Evidence ; dds:hasOrder 3 ;
+    dds:hasContent "evidence"@en .

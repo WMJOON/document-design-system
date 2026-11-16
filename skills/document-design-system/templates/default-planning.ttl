@@ -1,0 +1,95 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix component: <https://example.org/data/component/> .
+
+# DDS default skeleton — PlanningSystem (TTL is the canonical authoring format).
+# Use: copy, replace `new-doc` with your document id everywhere (sed 's#new-doc#my-id#g'),
+# replace every «...» placeholder, delete sections you do not need.
+# Rules: every component is reachable (root via doc:hasComponent, others via hasChild);
+# hasOrder is 1..n per parent; leaf content is a language-tagged literal and never empty.
+# Presentation falls back to the DesignSystem default binding unless set.
+# Validate: python3 scripts/validate.py FILE.ttl   Render: python3 scripts/render.py FILE.ttl -o FILE.md
+
+doc:new-doc a dds:Document ;
+    skos:prefLabel "«문서 제목»"@ko ;
+    dds:usesDesignSystem design:PlanningSystem ;
+    dds:hasComponent component:new-doc\/overview , component:new-doc\/requirements ,
+        component:new-doc\/scope , component:new-doc\/decisions .
+
+# 개요 ------------------------------------------------------------------------
+component:new-doc\/overview a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 1 ;
+    dds:hasChild component:new-doc\/overview-title , component:new-doc\/overview-desc .
+component:new-doc\/overview-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "개요"@ko .
+component:new-doc\/overview-desc a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Description ; dds:hasOrder 2 ;
+    dds:hasContent "«배경과 목적을 한두 문장으로 적는다»"@ko .
+
+# 요구사항 --------------------------------------------------------------------
+component:new-doc\/requirements a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 2 ;
+    dds:hasChild component:new-doc\/requirements-title , component:new-doc\/REQ001 .
+component:new-doc\/requirements-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "요구사항"@ko .
+component:new-doc\/REQ001 a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Requirement ;
+    dds:hasPresentation presentation:Callout ; dds:hasOrder 2 ;
+    dds:hasContent "«시스템이 해야 하는 일»"@ko .
+
+# 범위와 제약 -----------------------------------------------------------------
+component:new-doc\/scope a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 3 ;
+    dds:hasChild component:new-doc\/scope-title , component:new-doc\/scope-list , component:new-doc\/scope-assumptions .
+component:new-doc\/scope-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "범위와 제약"@ko .
+component:new-doc\/scope-list a dds:Component ;
+    dds:hasStructure structure:List ; dds:ordered false ; dds:hasOrder 2 ;
+    dds:hasChild component:new-doc\/CON001 .
+component:new-doc\/CON001 a dds:Component ;
+    dds:hasStructure structure:ListItem ; dds:hasSemantic semantic:Constraint ; dds:hasOrder 1 ;
+    dds:hasContent "«지켜야 할 제약 또는 정책»"@ko .
+component:new-doc\/scope-assumptions a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 3 ;
+    dds:hasChild component:new-doc\/scope-assumptions-title , component:new-doc\/ASM001 .
+component:new-doc\/scope-assumptions-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "가정"@ko .
+component:new-doc\/ASM001 a dds:Component ;
+    dds:hasStructure structure:Paragraph ; dds:hasSemantic semantic:Assumption ;
+    dds:hasPresentation presentation:Emphasis ; dds:hasOrder 2 ;
+    dds:hasContent "«전제로 두는 사실»"@ko .
+
+# 의사결정 기록 ---------------------------------------------------------------
+component:new-doc\/decisions a dds:Component ;
+    dds:hasStructure structure:Section ; dds:hasOrder 4 ;
+    dds:hasChild component:new-doc\/decisions-title , component:new-doc\/decision-table .
+component:new-doc\/decisions-title a dds:Component ;
+    dds:hasStructure structure:Heading ; dds:hasOrder 1 ; dds:hasContent "의사결정 기록"@ko .
+component:new-doc\/decision-table a dds:Component ;
+    dds:hasStructure structure:Table ; dds:hasOrder 2 ;
+    dds:hasChild component:new-doc\/decision-table-r1 , component:new-doc\/decision-table-r2 .
+component:new-doc\/decision-table-r1 a dds:Component ;
+    dds:hasStructure structure:TableRow ; dds:hasOrder 1 ;
+    dds:hasChild component:new-doc\/decision-table-r1-c1 , component:new-doc\/decision-table-r1-c2 , component:new-doc\/decision-table-r1-c3 .
+component:new-doc\/decision-table-r1-c1 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasOrder 1 ; dds:hasContent "항목"@ko .
+component:new-doc\/decision-table-r1-c2 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasOrder 2 ; dds:hasContent "결정"@ko .
+component:new-doc\/decision-table-r1-c3 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasOrder 3 ; dds:hasContent "근거"@ko .
+component:new-doc\/decision-table-r2 a dds:Component ;
+    dds:hasStructure structure:TableRow ; dds:hasOrder 2 ;
+    dds:hasChild component:new-doc\/decision-table-r2-c1 , component:new-doc\/decision-table-r2-c2 , component:new-doc\/decision-table-r2-c3 .
+component:new-doc\/decision-table-r2-c1 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasOrder 1 ; dds:hasContent "«결정 대상»"@ko .
+component:new-doc\/decision-table-r2-c2 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasSemantic semantic:Decision ; dds:hasOrder 2 ;
+    dds:hasContent "«결정 내용»"@ko .
+component:new-doc\/decision-table-r2-c3 a dds:Component ;
+    dds:hasStructure structure:TableCell ; dds:hasSemantic semantic:Evidence ; dds:hasOrder 3 ;
+    dds:hasContent "«근거»"@ko .

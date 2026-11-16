@@ -1,0 +1,153 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:ai-support-proposal a dds:Document ;
+    skos:prefLabel "AI 상담 시스템 기획안"@ko ;
+    dds:hasComponent <https://example.org/data/component/ai-support-proposal/decisions>,
+        <https://example.org/data/component/ai-support-proposal/overview>,
+        <https://example.org/data/component/ai-support-proposal/scope> ;
+    dds:usesDesignSystem design:PlanningSystem .
+
+<https://example.org/data/component/ai-support-proposal/ASM001> a dds:Component ;
+    dds:hasContent "상담 이력 데이터는 6개월치가 확보되어 있다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasPresentation presentation:Emphasis ;
+    dds:hasSemantic semantic:Assumption ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/ai-support-proposal/CON001> a dds:Component ;
+    dds:hasContent "개인정보는 마스킹된 상태로만 처리한다."@ko ;
+    dds:hasOrder 1 ;
+    dds:hasSemantic semantic:Constraint,
+        semantic:Policy ;
+    dds:hasStructure structure:ListItem .
+
+<https://example.org/data/component/ai-support-proposal/REQ001> a dds:Component ;
+    dds:hasContent "환불 가능 여부를 판단해야 한다."@ko ;
+    dds:hasOrder 3 ;
+    dds:hasPresentation presentation:Callout ;
+    dds:hasSemantic semantic:Requirement ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/ai-support-proposal/decision-table> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/decision-table-r1>,
+        <https://example.org/data/component/ai-support-proposal/decision-table-r2> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Table .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r1> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/decision-table-r1-c1>,
+        <https://example.org/data/component/ai-support-proposal/decision-table-r1-c2>,
+        <https://example.org/data/component/ai-support-proposal/decision-table-r1-c3> ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:TableRow .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r1-c1> a dds:Component ;
+    dds:hasContent "항목"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r1-c2> a dds:Component ;
+    dds:hasContent "결정"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r1-c3> a dds:Component ;
+    dds:hasContent "근거"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r2> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/decision-table-r2-c1>,
+        <https://example.org/data/component/ai-support-proposal/decision-table-r2-c2>,
+        <https://example.org/data/component/ai-support-proposal/decision-table-r2-c3> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:TableRow .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r2-c1> a dds:Component ;
+    dds:hasContent "모델 호스팅"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r2-c2> a dds:Component ;
+    dds:hasContent "사내 호스팅"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Decision ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decision-table-r2-c3> a dds:Component ;
+    dds:hasContent "데이터 반출 금지 정책"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Evidence ;
+    dds:hasStructure structure:TableCell .
+
+<https://example.org/data/component/ai-support-proposal/decisions> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/decision-table>,
+        <https://example.org/data/component/ai-support-proposal/decisions-title> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/ai-support-proposal/decisions-title> a dds:Component ;
+    dds:hasContent "의사결정 기록"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/ai-support-proposal/overview> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/REQ001>,
+        <https://example.org/data/component/ai-support-proposal/overview-desc>,
+        <https://example.org/data/component/ai-support-proposal/overview-title> ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/ai-support-proposal/overview-desc> a dds:Component ;
+    dds:hasContent "고객 환불 문의를 1차로 응대하는 AI 상담 시스템을 구축한다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Description ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/ai-support-proposal/overview-title> a dds:Component ;
+    dds:hasContent "프로젝트 개요"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/ai-support-proposal/scope> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/scope-detail>,
+        <https://example.org/data/component/ai-support-proposal/scope-list>,
+        <https://example.org/data/component/ai-support-proposal/scope-title> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/ai-support-proposal/scope-detail> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/ASM001>,
+        <https://example.org/data/component/ai-support-proposal/scope-detail-title> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/ai-support-proposal/scope-detail-title> a dds:Component ;
+    dds:hasContent "가정과 근거"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/ai-support-proposal/scope-list> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/ai-support-proposal/CON001>,
+        <https://example.org/data/component/ai-support-proposal/scope-list-i2> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:List ;
+    dds:ordered true .
+
+<https://example.org/data/component/ai-support-proposal/scope-list-i2> a dds:Component ;
+    dds:hasContent "1차 범위는 환불 문의로 한정한다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:ListItem .
+
+<https://example.org/data/component/ai-support-proposal/scope-title> a dds:Component ;
+    dds:hasContent "범위와 제약"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+

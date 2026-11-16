@@ -17,15 +17,15 @@ All commands run from this skill directory.
 
 | Operation | Command | Notes |
 |---|---|---|
-| compose | `python3 scripts/compose.py SPEC.yaml -o doc.ttl` | YAML → ABox; validates afterwards. `--write-ids` persists generated ids |
+| build | `python3 scripts/gen_builder.py LIB.ttl -o generated/build_x.py` | component library → document builder; the builder writes the document TTL |
 | validate | `python3 scripts/validate.py doc.ttl [--json] [--lang ko]` | exit 0 pass / 1 violations / 2 error |
 | render | `python3 scripts/render.py doc.ttl -o doc.md [--no-annotate]` | refuses invalid input unless `--force` |
 | parse | `python3 scripts/parse.py doc.md -o doc.ttl [--design-system X]` | annotated MD → exact graph; plain MD → structural |
 | export | `python3 scripts/export.py doc.ttl -f json-ld [--with-tbox]` | turtle, json-ld, nt, xml |
 | define | edit `instances/design-system.ttl` or pass your own TTL with `--extra` | new DesignSystems, presentations, bindings |
-| update | edit SPEC.yaml (keep `id`s) and re-run compose | IRIs stay stable |
+| update | edit the TTL in place (keep component IRIs), re-validate | IRIs stay stable |
 
-`diff` is not implemented yet (roadmap). Use `rdflib.compare.graph_diff` on two composed graphs.
+`diff` is not implemented yet (roadmap). Use `rdflib.compare.graph_diff` on two document graphs.
 
 ## Workflow
 
@@ -34,9 +34,15 @@ All commands run from this skill directory.
 2. **Pick a DesignSystem.** Read `instances/design-system.ttl` (`PlanningSystem`, `MemoSystem`).
    A new one goes in a separate TTL passed via `--extra`. Never apply a Structure / Semantic /
    Presentation the DesignSystem does not support.
-3. **Write a compose spec.** Start from `templates/planning-document.yaml`. Give every component an
-   explicit, stable `id`. See [references/compose-spec.md](references/compose-spec.md).
-4. **Compose → validate.** Run `compose.py`. A successful Turtle serialisation is NOT validation.
+3. **Build from components.** Components are defined first, in a library TTL
+   (`library/planning-components.ttl`, itself SHACL-valid). `python3 scripts/gen_builder.py
+   library/planning-components.ttl -o generated/build_planning.py` generates a builder script with one
+   method per component (`section`, `heading`, `requirement`, `bullet_list`, `table`, …). Write the
+   document as a short Python call sequence (see the generated docstring); the builder fills ids,
+   `hasChild` and `hasOrder` and writes TTL. Never hand-edit `generated/`; edit the library and
+   regenerate. To add a component, add a prototype to the library (root, or under its container).
+   For hand-written TTL, copy `templates/default-planning.ttl` / `default-memo.ttl` instead.
+4. **Validate.** Run `validate.py`. A successful Turtle parse is NOT validation.
    Only a `PASS` from SHACL counts. On failure, read the `[ddsh:…Shape]` code and fix the cause
    (see [references/validation-rules.md](references/validation-rules.md)).
 5. **Render** with `render.py`. Keep annotations (default) when the Markdown may be parsed back.
@@ -61,5 +67,7 @@ All commands run from this skill directory.
 - `instances/design-system.ttl`: reusable type/style individuals and the default DesignSystems
 - `instances/example-document.ttl`: example planning document (ABox)
 - `config/presentation-markdown.yaml`: Presentation token → Markdown rule (`wrap`, `prefix`)
-- `templates/planning-document.{yaml,md}`: compose spec and its rendered output
+- `library/planning-components.ttl`: component prototypes (source of the builder)
+- `scripts/gen_builder.py` → `generated/build_*.py`: generated document builder (do not hand-edit)
+- `templates/default-{planning,memo}.ttl`: blank TTL skeletons for hand-written TTL
 - `tests/`: `python3 -m pytest -q tests`

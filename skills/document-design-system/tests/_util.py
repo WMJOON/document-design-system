@@ -5,7 +5,7 @@ from pathlib import Path
 SKILL = Path(__file__).resolve().parents[1]
 SCRIPTS = SKILL / "scripts"
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
-TEMPLATE = SKILL / "templates" / "planning-document.yaml"
+PROPOSAL = FIXTURES / "valid" / "ai-support-proposal.ttl"
 EXAMPLE = SKILL / "instances" / "example-document.ttl"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
