@@ -4,9 +4,10 @@
 evaluated honestly.**
 
 DDS is an Agent Skill (for Claude Code, Codex and similar agents) that models documents — plans,
-policies, specs, decision records — as an RDF/OWL graph instead of free text. Every block knows what
-it is (*structure*), what role it plays (*semantic*) and how it should look (*presentation*). That lets
-an agent check a document the way a compiler checks code: is every decision backed by a rationale, is
+policies, specs, decision records — as an RDF/OWL graph instead of free text. *Structure* organises
+information by level of abstraction and logical order, *semantics* record what each part means for the
+judgment and how meanings depend on each other, and *presentation* shows each kind of meaning the same
+way every time. That lets an agent check a document the way a compiler checks code: is every decision backed by a rationale, is
 every premise stated before it is used, did a critique quietly disappear, does the summary lead to its
 evidence?
 
@@ -40,20 +41,21 @@ for a request. Everything below also works by hand from `skills/document-design-
 
 ## How a document is modelled
 
-| Axis | Question it answers | Examples |
-|---|---|---|
-| **Structure** | What kind of block? | Section, Heading, Paragraph, List / ListItem, Table / TableRow / TableCell |
-| **Semantic** | What role does it play? | Requirement, Policy, Constraint, Decision, Evidence, Assumption, Description, Problem, Goal, Scope, DecisionQuestion, Criterion, Alternative, Claim, Counterargument, Perspective, Risk, Rationale, Critique, UnresolvedIssue |
-| **Presentation** | How does it look? | Typography, Layout, Style → design tokens → Markdown rules |
+Three independent axes, each with one design principle:
 
-- A **DesignSystem** says which structures, semantics and styles a document may use
+| Axis | Principle | What it decides | Expressed by | Checked by |
+|---|---|---|---|---|
+| **Structure** | Hierarchy & progressive disclosure | **Depth** = level of abstraction: a Section's leading content is the overview of its sub-Sections, and deeper means more detail. **Order** = logical progression: a premise comes before whatever depends on it. | Section nesting and sibling order over blocks: Section, Heading, Paragraph, List / ListItem, Table / TableRow / TableCell | SHACL: hierarchy and container rules, overview links point down, premises come first |
+| **Semantic** | Meaning & fidelity | What each part does for the judgment, and which parts rest on, support, contradict or review others | Roles (Problem, Goal, Scope, Criterion, Alternative, Claim, Evidence, Counterargument, Decision, Rationale, Critique, UnresolvedIssue, Requirement, Policy, …) and relations (`basedOn`, `supportedBy`, `elaboratedBy`, `counters`, `targets`) with PROV-O provenance | SHACL for required roles and links; fidelity, coverage, counterarguments, perspective bias and evidence sufficiency by review (a person, or a model as a second opinion) |
+| **Presentation** | Consistency & predictability | How each kind of meaning is shown, the same way every time, so readers know where to look — it follows meaning and never defines it | Typography / Layout / Style tokens → Markdown rules; defaults per structure (DesignSystem) and per meaning (DocumentFrame) | Consistency, distinguishability and predictability checks |
+
+Two contracts bind the axes together:
+
+- A **DesignSystem** says what a document *may* use: which structures, roles and styles
   (`PlanningSystem`, `MemoSystem`, `DeliberationSystem`, or your own).
-- A **DocumentFrame** says which meanings a document must contain and how each is presented —
-  e.g. `DecisionRecord-v1` needs a decision question, a decision and a rationale. Frames are versioned
-  by IRI, so revising a Frame never changes documents written against the old version.
-- **Structure has two jobs.** *Depth* sets the level of abstraction: the leading content of a Section is
-  the overview of its sub-Sections. *Order* sets the logical progression: a premise comes before
-  whatever depends on it.
+- A **DocumentFrame** says what a document *must* contain and how each meaning is presented — e.g.
+  `DecisionRecord-v1` needs a decision question, a decision and a rationale. Frames are versioned by
+  IRI, so revising a Frame never changes documents written against the old version.
 
 ## Three ways to use it
 
@@ -219,10 +221,17 @@ own vocabulary.
 
 ## 한국어 요약
 
-DDS는 사람이 판단에 쓰는 문서(기획안, 정책서, 명세서, 결정 기록)를 자유 텍스트가 아닌 RDF/OWL 그래프로 다루는 에이전트 스킬입니다. 모든 블록이 구조(무엇인가), 의미(어떤 역할인가), 표현(어떻게 보이는가)을 가지므로, 코드를 컴파일러가 검사하듯 문서를 검사할 수 있습니다. 결정에 근거가 있는지, 전제가 쓰이기 전에 먼저 나오는지, 비평이 슬그머니 사라지지 않았는지, 요약이 근거로 이어지는지를 봅니다. TTL이 정본이고 Markdown은 손실 없이 되돌릴 수 있는 렌더링입니다.
+DDS는 사람이 판단에 쓰는 문서(기획안, 정책서, 명세서, 결정 기록)를 자유 텍스트가 아닌 RDF/OWL 그래프로 다루는 에이전트 스킬입니다. 세 축이 각자 하나의 원칙을 맡습니다.
+
+| 축 | 원칙 | 정하는 것 |
+|---|---|---|
+| 구조 | 계층과 점진 공개 | 깊이 = 추상화 수준(상위 Section의 앞부분이 하위의 개요), 순서 = 논리 전개(전제가 먼저) |
+| 의미 | 의미 보존과 충실성 | 각 부분이 판단에서 하는 역할, 그리고 전제·근거·반박·비평으로 이어진 의존 관계 |
+| 표현 | 일관성과 예측 가능성 | 같은 의미는 늘 같은 모양으로 보이게 한다. 표현은 의미를 따를 뿐 의미를 정하지 않는다 |
+
+DesignSystem은 문서가 쓸 수 있는 것을, DocumentFrame은 문서가 반드시 담아야 할 것을 정합니다. 그래서 코드를 컴파일러가 검사하듯 문서를 검사할 수 있습니다. 결정에 근거가 있는지, 전제가 쓰이기 전에 먼저 나오는지, 비평이 슬그머니 사라지지 않았는지, 요약이 근거로 이어지는지를 봅니다. TTL이 정본이고 Markdown은 손실 없이 되돌릴 수 있는 렌더링입니다.
 
 - **세 가지 사용 흐름**: 문서 작성·검증·렌더링, DocumentFrame(문제 정의 → 결정 질문 → 대안 비교 → 독립 비평 → 숙의 개정 → 결정 기록)으로 결정 문서 작성, 항목별 평가.
-- **구조 원칙**: 깊이는 추상화 수준(상위 Section의 앞부분이 하위의 개요), 순서는 논리 전개(전제가 먼저).
 - **평가**: 항목마다 Pass / Fail / NeedsReview / NotEvaluated와 근거를 보고하며 합계 점수는 없습니다. 모델 의견은 판정이 아니라 검토 필요로 표시하고, 의미 항목은 사람의 평가 기록으로만 닫힙니다.
 - **비용을 줄인 의미 검사**: 모델이 필요하지 않은 검사는 SHACL·Python으로 끝내고, 변경 영향 범위만 최소 입력으로 다시 판정하며, 결과를 캐시합니다. 판정 모델은 OpenAI 호환 로컬 런타임(oMLX, LM Studio, Ollama, vLLM, SGLang)을 쓰고, 없으면 경량 서브에이전트에 위임합니다. 절감 효과는 `bench.py`로 직접 측정하며 미리 약속하지 않습니다.
 - 에이전트는 `SKILL.md`를 읽고 요청에 맞는 경로를 고릅니다.
