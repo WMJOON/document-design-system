@@ -30,3 +30,19 @@ def test_state_dir_is_created(tmp_path):
             "--cache", state / "cache.ttl", "--out", state / "assessments.ttl", "--metrics", state / "runs.jsonl")
     assert r.returncode == 0, r.stderr
     assert (state / "cache.ttl").exists() and (state / "runs.jsonl").exists()
+
+
+def test_readme_example_builds_a_valid_document(tmp_path, monkeypatch):
+    text = (SKILL.parents[1] / "README.md").read_text(encoding="utf-8")
+    code = re.findall(r"```python\n(.*?)```", text, re.S)[0].replace("/tmp/pilot.ttl", str(tmp_path / "pilot.ttl"))
+    monkeypatch.chdir(SKILL)
+    exec(code, {})
+    assert run("validate.py", tmp_path / "pilot.ttl").returncode == 0
+    r = run("evaluate.py", tmp_path / "pilot.ttl")
+    assert r.returncode == 0 and "Order: Pass" in r.stdout
+
+
+def test_readme_mentions_only_existing_scripts():
+    text = (SKILL.parents[1] / "README.md").read_text(encoding="utf-8")
+    for name in set(re.findall(r"scripts/([a-z_]+\.py)", text)):
+        assert (SCRIPTS / name).exists(), name
