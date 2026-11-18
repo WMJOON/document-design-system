@@ -1,0 +1,124 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix resolution: <https://example.org/data/resolution/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:decision-record-frame-revision a dds:Document ;
+    skos:prefLabel "DecisionRecord Frame 개정 제안 (v1 → v2)"@ko ;
+    prov:wasDerivedFrom doc:search-tool-decision ;
+    dds:hasComponent <https://example.org/data/component/decision-record-frame-revision/details>,
+        <https://example.org/data/component/decision-record-frame-revision/open-section>,
+        <https://example.org/data/component/decision-record-frame-revision/overview>,
+        <https://example.org/data/component/decision-record-frame-revision/premises> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:DeliberationRevision-v1 .
+
+<https://example.org/data/component/decision-record-frame-revision/counter> a dds:Component ;
+    dds:counters <https://example.org/data/component/decision-record-frame-revision/claim> ;
+    dds:hasContent "반론이 없는 결정도 있으므로 개수 요구는 형식적 반론을 낳을 수 있다."@ko ;
+    dds:hasOrder 6 ;
+    dds:hasSemantic semantic:Counterargument ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/decision-record-frame-revision/claim>,
+        <https://example.org/data/component/decision-record-frame-revision/counter>,
+        <https://example.org/data/component/decision-record-frame-revision/critique-counter>,
+        <https://example.org/data/component/decision-record-frame-revision/critique-scope>,
+        <https://example.org/data/component/decision-record-frame-revision/details-h>,
+        <https://example.org/data/component/decision-record-frame-revision/evidence> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/decision-record-frame-revision/details-h> a dds:Component ;
+    dds:hasContent "평가 결과와 비평"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/decision-record-frame-revision/no-silent-change> a dds:Component ;
+    dds:hasContent "Frame 개정은 v1에 고정된 기존 문서의 의미와 평가 결과를 바꾸지 않는다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/open-h> a dds:Component ;
+    dds:hasContent "미해결"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/decision-record-frame-revision/open-section> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/decision-record-frame-revision/open>,
+        <https://example.org/data/component/decision-record-frame-revision/open-h> ;
+    dds:hasOrder 4 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/decision-record-frame-revision/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/decision-record-frame-revision/claim>,
+        <https://example.org/data/component/decision-record-frame-revision/critique-scope>,
+        <https://example.org/data/component/decision-record-frame-revision/open> ;
+    dds:hasContent "DecisionRecord Frame에 Scope와 Criterion 요구를 추가한 v2를 제안한다. v1 문서는 그대로 둔다. 반론 요구 추가는 보류한다."@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/decision-record-frame-revision/no-silent-change>,
+        <https://example.org/data/component/decision-record-frame-revision/premises-h>,
+        <https://example.org/data/component/decision-record-frame-revision/scope> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/decision-record-frame-revision/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/decision-record-frame-revision/critique-counter> a dds:Component ;
+    dds:hasContent "Counterargument도 필수로 요구해야 한다."@ko ;
+    dds:hasOrder 5 ;
+    dds:hasSemantic semantic:Critique ;
+    dds:hasStructure structure:Paragraph ;
+    dds:resolution resolution:deferred ;
+    dds:targets <https://example.org/data/component/decision-record-frame-revision/claim> .
+
+<https://example.org/data/component/decision-record-frame-revision/critique-scope> a dds:Component ;
+    dds:hasContent "결정 기록에 Scope와 Criterion을 필수로 요구해야 한다."@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Critique ;
+    dds:hasStructure structure:Paragraph ;
+    dds:resolution resolution:accepted ;
+    dds:targets <https://example.org/data/component/decision-record-frame-revision/claim> .
+
+<https://example.org/data/component/decision-record-frame-revision/evidence> a dds:Component ;
+    prov:hadPrimarySource <https://example.org/evaluations/search-tool-decision/2026-11-18> ;
+    dds:hasContent "evaluate.py 결과: coverage NeedsReview (no Scope component). 가상 사례."@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Evidence ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/open> a dds:Component ;
+    prov:wasDerivedFrom <https://example.org/data/component/decision-record-frame-revision/critique-counter> ;
+    dds:hasContent "반론 요구를 Frame 계약으로 둘지, 평가(Counterargument NeedsReview)로만 다룰지 합의되지 않았다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:UnresolvedIssue ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/scope> a dds:Component ;
+    dds:hasContent "대상: DecisionRecord-v1으로 작성된 결정 기록과 그 평가 결과."@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/decision-record-frame-revision/claim> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/decision-record-frame-revision/scope> ;
+    dds:hasContent "v1 평가에서 범위가 명시되지 않은 문서는 Coverage를 판단할 수 없었다."@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Claim ;
+    dds:hasStructure structure:Paragraph ;
+    dds:supportedBy <https://example.org/data/component/decision-record-frame-revision/evidence> .
+

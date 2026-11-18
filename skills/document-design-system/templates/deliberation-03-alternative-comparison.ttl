@@ -1,0 +1,99 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-03-alternative-comparison a dds:Document ;
+    skos:prefLabel "«대안 비교 제목»"@ko ;
+    prov:wasDerivedFrom doc:new-doc-02-decision-question ;
+    dds:hasComponent <https://example.org/data/component/new-doc-03-alternative-comparison/details>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/overview>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/premises> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:AlternativeComparison-v1 .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-03-alternative-comparison/alt-a>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/alt-b>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/details-h>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/evidence>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/risk>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/unclassified> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/details-h> a dds:Component ;
+    dds:hasContent "대안"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-03-alternative-comparison/alt-a>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/alt-b>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/unclassified> ;
+    dds:hasContent "«대안 몇 개를 어떤 기준으로 비교했고, 무엇이 미분류로 남았는가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-03-alternative-comparison/criterion>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/premises-h>,
+        <https://example.org/data/component/new-doc-03-alternative-comparison/scope> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/risk> a dds:Component ;
+    dds:hasContent "«위험»"@ko ;
+    dds:hasOrder 5 ;
+    dds:hasSemantic semantic:Risk ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/scope> a dds:Component ;
+    dds:hasContent "«범위: 포함하는 것과 제외하는 것»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/alt-a> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-03-alternative-comparison/criterion> ;
+    dds:hasContent "«A안»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Alternative ;
+    dds:hasStructure structure:Paragraph ;
+    dds:supportedBy <https://example.org/data/component/new-doc-03-alternative-comparison/evidence> .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/alt-b> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-03-alternative-comparison/criterion> ;
+    dds:hasContent "«B안»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Alternative ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/evidence> a dds:Component ;
+    dds:hasContent "«A안을 뒷받침하는 근거»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Evidence ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/unclassified> a dds:Component ;
+    dds:hasContent "«어느 대안에도 속하지 않는 사례 (완전성은 선언하지 않는다)»"@ko ;
+    dds:hasOrder 6 ;
+    dds:hasSemantic semantic:UnresolvedIssue ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-03-alternative-comparison/criterion> a dds:Component ;
+    dds:hasContent "«판단 기준»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+

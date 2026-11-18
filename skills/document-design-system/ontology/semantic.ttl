@@ -12,3 +12,21 @@ dds:Decision    a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A cho
 dds:Evidence    a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Supporting fact or data."@en .
 dds:Assumption  a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Something taken as true without proof."@en .
 dds:Description a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Neutral explanatory content."@en .
+
+# v0.3.0 deliberation semantics -----------------------------------------------------------
+# Agreement / disagreement / hold are NOT semantics: they are dds:resolution values on a Critique.
+# Overview / summary is NOT a semantic either: it is the relative role of a Section's leading content
+# with respect to its sub-Sections (Section depth = level of abstraction).
+dds:Problem         a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "The problem the document addresses."@en .
+dds:Goal            a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A state the work aims to reach."@en .
+dds:Scope           a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Boundary of the problem, decision or evidence set. Coverage and MECE are judged only within a stated Scope."@en .
+dds:DecisionQuestion a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "What has to be decided or agreed."@en .
+dds:Criterion       a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A yardstick for comparing alternatives or judging success."@en .
+dds:Alternative     a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "One option under consideration."@en .
+dds:Claim           a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "An assertion that should be traceable to evidence."@en .
+dds:Counterargument a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "An argument against a claim, alternative or decision."@en .
+dds:Perspective     a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "The view of one stakeholder or role."@en .
+dds:Risk            a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A possible adverse outcome."@en .
+dds:Rationale       a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "Why a decision was made (reasoning, not raw evidence)."@en .
+dds:Critique        a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "An independent review remark. Adds an opinion; it is not a veto. Its outcome is recorded separately (dds:resolution)."@en .
+dds:UnresolvedIssue a owl:Class ; rdfs:subClassOf dds:Semantic ; rdfs:comment "A question or disagreement left open on purpose."@en .

@@ -1,0 +1,126 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-06-decision-record a dds:Document ;
+    skos:prefLabel "«결정 기록 제목»"@ko ;
+    prov:wasDerivedFrom doc:new-doc-05-deliberation-revision ;
+    dds:hasComponent <https://example.org/data/component/new-doc-06-decision-record/details>,
+        <https://example.org/data/component/new-doc-06-decision-record/open-section>,
+        <https://example.org/data/component/new-doc-06-decision-record/overview>,
+        <https://example.org/data/component/new-doc-06-decision-record/premises>,
+        <https://example.org/data/component/new-doc-06-decision-record/question> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:DecisionRecord-v1 .
+
+<https://example.org/data/component/new-doc-06-decision-record/counter> a dds:Component ;
+    dds:counters <https://example.org/data/component/new-doc-06-decision-record/claim> ;
+    dds:hasContent "«남아 있는 반론»"@ko ;
+    dds:hasOrder 6 ;
+    dds:hasSemantic semantic:Counterargument ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-06-decision-record/claim>,
+        <https://example.org/data/component/new-doc-06-decision-record/counter>,
+        <https://example.org/data/component/new-doc-06-decision-record/decision>,
+        <https://example.org/data/component/new-doc-06-decision-record/details-h>,
+        <https://example.org/data/component/new-doc-06-decision-record/evidence>,
+        <https://example.org/data/component/new-doc-06-decision-record/rationale> ;
+    dds:hasOrder 4 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-06-decision-record/details-h> a dds:Component ;
+    dds:hasContent "결정과 근거"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-06-decision-record/open-h> a dds:Component ;
+    dds:hasContent "미해결"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-06-decision-record/open-section> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-06-decision-record/open>,
+        <https://example.org/data/component/new-doc-06-decision-record/open-h> ;
+    dds:hasOrder 5 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-06-decision-record/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-06-decision-record/decision>,
+        <https://example.org/data/component/new-doc-06-decision-record/open> ;
+    dds:hasContent "«무엇을 결정했고, 무엇을 근거로 했으며, 무엇이 남았는가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-06-decision-record/criterion>,
+        <https://example.org/data/component/new-doc-06-decision-record/premises-h>,
+        <https://example.org/data/component/new-doc-06-decision-record/scope> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-06-decision-record/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-06-decision-record/question> a dds:Component ;
+    dds:hasContent "«결정 질문»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:DecisionQuestion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/claim> a dds:Component ;
+    dds:hasContent "«결정을 지지하는 주장»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Claim ;
+    dds:hasStructure structure:Paragraph ;
+    dds:supportedBy <https://example.org/data/component/new-doc-06-decision-record/evidence> .
+
+<https://example.org/data/component/new-doc-06-decision-record/criterion> a dds:Component ;
+    dds:hasContent "«판단 기준»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/decision> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-06-decision-record/criterion>,
+        <https://example.org/data/component/new-doc-06-decision-record/scope> ;
+    dds:hasContent "«결정»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Decision ;
+    dds:hasStructure structure:Paragraph ;
+    dds:supportedBy <https://example.org/data/component/new-doc-06-decision-record/rationale> .
+
+<https://example.org/data/component/new-doc-06-decision-record/evidence> a dds:Component ;
+    prov:hadPrimarySource <https://example.org/sources/replace-me> ;
+    dds:hasContent "«근거»"@ko ;
+    dds:hasOrder 5 ;
+    dds:hasSemantic semantic:Evidence ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/open> a dds:Component ;
+    dds:hasContent "«미해결 사항»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:UnresolvedIssue ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/rationale> a dds:Component ;
+    dds:hasContent "«결정 이유»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Rationale ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-06-decision-record/scope> a dds:Component ;
+    dds:hasContent "«범위: 포함하는 것과 제외하는 것»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+

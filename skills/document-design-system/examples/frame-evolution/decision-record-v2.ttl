@@ -1,0 +1,31 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix doc: <https://example.org/data/doc/> .
+
+# Example Frame revision (fictional). DecisionRecord-v1 stays untouched; v2 is a NEW individual.
+# Why (see revision-proposal.ttl): evaluations under v1 reported "coverage cannot be judged without
+# a stated scope" and dependents of unstated criteria. v2 therefore also requires a Scope and a
+# Criterion. Documents pinned to v1 keep their meaning and their evaluation results.
+# Load with --extra examples/frame-evolution/decision-record-v2.ttl
+
+frame:DecisionRecord-v2 a dds:DocumentFrame ;
+    skos:prefLabel "Decision Record Frame"@en ; owl:versionInfo "2" ;
+    prov:wasRevisionOf frame:DecisionRecord-v1 ;
+    prov:wasDerivedFrom doc:decision-record-frame-revision ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability true ;
+    dds:frameQuestion "What was decided, within which scope and by which criteria, on what basis, and what remains unresolved?"@en ,
+                      "어떤 범위와 기준에서 무엇을 결정했고, 무엇을 근거로 했으며, 무엇이 미해결로 남았는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 ,
+        frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 ,
+        frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:DecisionRecord-v1-decisionQuestion , frame:DecisionRecord-v1-decision ,
+        frame:DecisionRecord-v1-rationale , frame:DecisionRecord-v2-scope , frame:DecisionRecord-v2-criterion .
+
+frame:DecisionRecord-v2-scope a dds:FrameRequirement ; dds:requiredSemantic semantic:Scope ; dds:minOccurs 1 .
+frame:DecisionRecord-v2-criterion a dds:FrameRequirement ; dds:requiredSemantic semantic:Criterion ; dds:minOccurs 1 .

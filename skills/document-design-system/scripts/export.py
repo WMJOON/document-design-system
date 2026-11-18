@@ -26,7 +26,7 @@ def main(argv=None) -> int:
     ap.add_argument("-f", "--format", default="turtle", choices=sorted(FORMATS))
     ap.add_argument("-o", "--output", type=Path)
     ap.add_argument("--with-tbox", action="store_true", help="include ontology/*.ttl")
-    ap.add_argument("--with-defaults", action="store_true", help="include instances/design-system.ttl")
+    ap.add_argument("--with-defaults", action="store_true", help="include instances/design-system.ttl and frames.ttl")
     ap.add_argument("--no-validate", action="store_true")
     a = ap.parse_args(argv)
 

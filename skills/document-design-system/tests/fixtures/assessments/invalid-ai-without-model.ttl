@@ -1,0 +1,9 @@
+@prefix earl: <http://www.w3.org/ns/earl#> .
+@prefix criterion: <https://example.org/data/criterion/> .
+@prefix doc: <https://example.org/data/doc/> .
+
+# INVALID: an AI (non-manual) assessment without dds:assessorModel / dds:uncertainty. Must be ignored.
+[] a earl:Assertion ;
+    earl:subject doc:search-tool-decision ; earl:test criterion:fidelity ;
+    earl:assertedBy <https://example.org/agents/reviewer-bot> ; earl:mode earl:automatic ;
+    earl:result [ a earl:TestResult ; earl:outcome earl:failed ; earl:info "Looks distorted."@en ] .

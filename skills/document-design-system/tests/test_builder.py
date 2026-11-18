@@ -1,5 +1,7 @@
 import importlib.util
 
+import pytest
+
 from _util import SKILL, run
 
 LIB = SKILL / "library" / "planning-components.ttl"
@@ -11,10 +13,39 @@ def test_library_passes_shacl():
     assert r.returncode == 0, r.stdout
 
 
-def test_generated_builder_is_current(tmp_path):
-    out = tmp_path / "build_planning.py"
-    assert run("gen_builder.py", LIB, "-o", out).returncode == 0
-    assert out.read_text(encoding="utf-8") == GEN.read_text(encoding="utf-8")
+DLIB = SKILL / "library" / "deliberation-components.ttl"
+DGEN = SKILL / "generated" / "build_deliberation.py"
+
+
+@pytest.mark.parametrize("lib,gen", [(LIB, GEN), (DLIB, DGEN)], ids=["planning", "deliberation"])
+def test_generated_builder_is_current(lib, gen, tmp_path):
+    assert run("validate.py", lib).returncode == 0
+    out = tmp_path / gen.name
+    assert run("gen_builder.py", lib, "-o", out).returncode == 0
+    assert out.read_text(encoding="utf-8") == gen.read_text(encoding="utf-8")
+
+
+def _load(gen):
+    spec = importlib.util.spec_from_file_location(gen.stem, gen)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    return m
+
+
+def test_links_resolve_forward_and_reject_unknown(tmp_path):
+    m = _load(DGEN)
+    d = m.Doc("t", "제목", frame="IndependentCritique-v1")
+    d.add(d.critique("cr", "지적", targets=["cl"], resolution="accepted"),  # forward reference
+          d.claim("cl", "주장"))
+    ttl = tmp_path / "t.ttl"
+    d.write(ttl)
+    assert run("validate.py", ttl).returncode == 0
+    bad = m.Doc("t", "제목")
+    bad.add(bad.claim("cl", "주장", supportedBy=["nope"]))
+    with pytest.raises(ValueError, match="unknown component id"):
+        bad.write()
+    with pytest.raises(ValueError, match="unknown link"):
+        m.Node("x", "Paragraph", links={"dependsOn": ["cl"]})
 
 
 def test_built_document_validates_and_renders(tmp_path):

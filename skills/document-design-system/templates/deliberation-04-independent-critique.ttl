@@ -1,0 +1,85 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix resolution: <https://example.org/data/resolution/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-04-independent-critique a dds:Document ;
+    skos:prefLabel "«독립 비평 제목»"@ko ;
+    prov:wasDerivedFrom doc:new-doc-03-alternative-comparison ;
+    dds:hasComponent <https://example.org/data/component/new-doc-04-independent-critique/details>,
+        <https://example.org/data/component/new-doc-04-independent-critique/overview> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:IndependentCritique-v1 .
+
+<https://example.org/data/component/new-doc-04-independent-critique/counter> a dds:Component ;
+    dds:counters <https://example.org/data/component/new-doc-04-independent-critique/claim> ;
+    dds:hasContent "«반례»"@ko ;
+    dds:hasOrder 5 ;
+    dds:hasSemantic semantic:Counterargument ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-04-independent-critique/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-04-independent-critique/claim>,
+        <https://example.org/data/component/new-doc-04-independent-critique/counter>,
+        <https://example.org/data/component/new-doc-04-independent-critique/critique-1>,
+        <https://example.org/data/component/new-doc-04-independent-critique/critique-2>,
+        <https://example.org/data/component/new-doc-04-independent-critique/details-h>,
+        <https://example.org/data/component/new-doc-04-independent-critique/evidence>,
+        <https://example.org/data/component/new-doc-04-independent-critique/open> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-04-independent-critique/details-h> a dds:Component ;
+    dds:hasContent "비평"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-04-independent-critique/open> a dds:Component ;
+    prov:wasDerivedFrom <https://example.org/data/component/new-doc-04-independent-critique/critique-2> ;
+    dds:hasContent "«보류된 지적의 쟁점»"@ko ;
+    dds:hasOrder 7 ;
+    dds:hasSemantic semantic:UnresolvedIssue ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-04-independent-critique/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-04-independent-critique/critique-1>,
+        <https://example.org/data/component/new-doc-04-independent-critique/critique-2> ;
+    dds:hasContent "«비평 몇 건, 그중 반영·기각·보류는 각각 몇 건인가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-04-independent-critique/critique-1> a dds:Component ;
+    dds:hasContent "«누락된 대안이나 근거 부족 지적»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Critique ;
+    dds:hasStructure structure:Paragraph ;
+    dds:resolution resolution:accepted ;
+    dds:targets <https://example.org/data/component/new-doc-04-independent-critique/claim> .
+
+<https://example.org/data/component/new-doc-04-independent-critique/evidence> a dds:Component ;
+    dds:hasContent "«주장의 근거»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Evidence ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-04-independent-critique/critique-2> a dds:Component ;
+    dds:hasContent "«합의되지 않은 지적»"@ko ;
+    dds:hasOrder 6 ;
+    dds:hasSemantic semantic:Critique ;
+    dds:hasStructure structure:Paragraph ;
+    dds:resolution resolution:deferred ;
+    dds:targets <https://example.org/data/component/new-doc-04-independent-critique/claim> .
+
+<https://example.org/data/component/new-doc-04-independent-critique/claim> a dds:Component ;
+    dds:hasContent "«검토 대상 주장»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Claim ;
+    dds:hasStructure structure:Paragraph ;
+    dds:supportedBy <https://example.org/data/component/new-doc-04-independent-critique/evidence> .
+

@@ -9,7 +9,7 @@
 
 <https://example.org/ontology/dds> a owl:Ontology ;
     rdfs:label "DDS — Document Design System"@en ;
-    owl:versionInfo "0.1.0" .
+    owl:versionInfo "0.3.0" .
 
 dds:Document a owl:Class ;
     rdfs:label "Document"@en ;
@@ -38,3 +38,17 @@ dds:Presentation a owl:Class ;
 dds:PresentationBinding a owl:Class ;
     rdfs:label "PresentationBinding"@en ;
     rdfs:comment "DesignSystem-scoped default Presentation for one Structure type."@en .
+
+# v0.3.0 (approved: DocumentFrame, FrameRequirement, SemanticBinding) ---------------------------
+
+dds:DocumentFrame a owl:Class ;
+    rdfs:label "DocumentFrame"@en ;
+    rdfs:comment "A reusable, versioned contract stating which semantic components a document must contain and how they are presented. Independent of DesignSystem; one Frame serves many Documents."@en .
+
+dds:FrameRequirement a owl:Class ;
+    rdfs:label "FrameRequirement"@en ;
+    rdfs:comment "One requirement of a DocumentFrame: a Semantic individual and its minimum number of components."@en .
+
+dds:SemanticBinding a owl:Class ;
+    rdfs:label "SemanticBinding"@en ;
+    rdfs:comment "Frame-scoped Semantic -> Presentation mapping. Presentation follows meaning, it never defines it."@en .

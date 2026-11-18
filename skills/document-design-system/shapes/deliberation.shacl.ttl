@@ -1,0 +1,236 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# v0.3.0 SHACL-SPARQL: DocumentFrame contract, relation scope, deliberation structure.
+# These rules check STRUCTURE only (a link exists, a count is met). Whether evidence really
+# supports a claim, or a summary is faithful, is not decided here: see scripts/evaluate.py.
+
+<https://example.org/ontology/dds/shapes> sh:declare
+    [ sh:prefix "skos" ; sh:namespace "http://www.w3.org/2004/02/skos/core#"^^xsd:anyURI ] ,
+    [ sh:prefix "prov" ; sh:namespace "http://www.w3.org/ns/prov#"^^xsd:anyURI ] .
+
+# ---------------------------------------------------------------- frame contract
+ddsh:FrameContractShape a sh:NodeShape ;
+    sh:targetClass dds:Document ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Frame {?frame} requires at least {?min} component(s) with semantic {?value}; the document has {?count}."@en ,
+                   "Frame {?frame}은 시맨틱 {?value} 컴포넌트를 {?min}개 이상 요구하지만 문서에는 {?count}개가 있다."@ko ;
+        sh:select """
+            SELECT $this ?frame ?value ?min (COUNT(DISTINCT ?c) AS ?count) WHERE {
+                $this dds:usesFrame ?frame .
+                ?frame dds:hasRequirement ?req .
+                ?req dds:requiredSemantic ?value .
+                OPTIONAL { ?req dds:minOccurs ?m . }
+                BIND (COALESCE(?m, 1) AS ?min)
+                OPTIONAL { $this dds:hasComponent/dds:hasChild* ?c . ?c dds:hasSemantic ?value . }
+            }
+            GROUP BY $this ?frame ?value ?min
+            HAVING (COUNT(DISTINCT ?c) < ?min)
+        """ ] .
+
+ddsh:FrameDesignSystemShape a sh:NodeShape ;
+    sh:targetClass dds:Document ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "DesignSystem {?value} is not compatible with Frame {?frame} (see dds:compatibleDesignSystem)."@en ,
+                   "DesignSystem {?value}은 Frame {?frame}과 호환되지 않는다(dds:compatibleDesignSystem 참고)."@ko ;
+        sh:select """
+            SELECT DISTINCT $this ?frame ?value WHERE {
+                $this dds:usesFrame ?frame ; dds:usesDesignSystem ?value .
+                ?frame dds:compatibleDesignSystem ?any .
+                FILTER NOT EXISTS { ?frame dds:compatibleDesignSystem ?value . }
+            }
+        """ ] .
+
+ddsh:MappingSupportedShape a sh:NodeShape ;
+    sh:targetClass dds:Document ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Frame presentation mapping uses {?value}, which DesignSystem {?ds} does not support."@en ,
+                   "Frame의 표현 매핑이 DesignSystem {?ds}에서 지원하지 않는 {?value}를 쓴다."@ko ;
+        sh:select """
+            SELECT DISTINCT $this ?value ?ds WHERE {
+                $this dds:usesFrame/dds:definesPresentationMapping ?b ; dds:usesDesignSystem ?ds .
+                { ?b dds:mappedPresentation ?value . FILTER NOT EXISTS { ?ds dds:supportsPresentation ?value . } }
+                UNION
+                { ?b dds:forSemantic ?value . FILTER NOT EXISTS { ?ds dds:supportsSemantic ?value . } }
+            }
+        """ ] .
+
+ddsh:UniqueMappingShape a sh:NodeShape ;
+    sh:targetClass dds:DocumentFrame ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "More than one presentation mapping for semantic {?value}."@en ,
+                   "시맨틱 {?value}에 대한 표현 매핑이 둘 이상이다."@ko ;
+        sh:select """
+            SELECT DISTINCT $this ?value WHERE {
+                $this dds:definesPresentationMapping ?b1 , ?b2 .
+                FILTER (?b1 != ?b2)
+                ?b1 dds:forSemantic ?value .
+                ?b2 dds:forSemantic ?value .
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- relations
+ddsh:RelationTargetShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Relation target {?value} is not a component of the same Document {?doc}."@en ,
+                   "관계 대상 {?value}가 같은 Document {?doc}의 컴포넌트가 아니다."@ko ;
+        sh:select """
+            SELECT $this ?value ?doc WHERE {
+                $this dds:elaboratedBy|dds:supportedBy|dds:basedOn|dds:counters|dds:targets ?value .
+                ?doc a dds:Document ; dds:hasComponent/dds:hasChild* $this .
+                FILTER NOT EXISTS { ?doc dds:hasComponent/dds:hasChild* ?value . }
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- deliberation structure
+ddsh:ElaborationDepthShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "dds:elaboratedBy must point down the hierarchy: {?value} is not inside a sub-Section that follows this overview content."@en ,
+                   "dds:elaboratedBy는 계층 아래를 가리켜야 한다: {?value}가 이 개요 내용과 같은 부모 아래의 하위 Section 안에 있지 않다."@ko ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dds:elaboratedBy ?value .
+                FILTER NOT EXISTS {
+                    ?parent dds:hasChild|dds:hasComponent $this , ?sub .
+                    FILTER (?sub != $this)
+                    ?sub dds:hasStructure/a/rdfs:subClassOf* dds:Section .
+                    ?sub dds:hasChild+ ?value .
+                }
+            }
+        """ ] .
+
+# ---------------------------------------------------------------- order = logical progression
+# "A precedes B" in document order: A is an ancestor of B, or ancestors-or-self of A and B are
+# siblings (same parent, or both Document roots) and A's branch has the smaller hasOrder.
+ddsh:PremiseOrderShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Premise {?value} (dds:basedOn) must come before the component that depends on it."@en ,
+                   "전제 {?value}(dds:basedOn)는 이를 사용하는 컴포넌트보다 앞에 배치해야 한다."@ko ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this dds:basedOn ?value .
+                FILTER NOT EXISTS { ?value dds:hasChild+ $this . }
+                FILTER NOT EXISTS {
+                    ?pa dds:hasChild* ?value .
+                    ?xa dds:hasChild* $this .
+                    ?parent dds:hasChild|dds:hasComponent ?pa , ?xa .
+                    ?pa dds:hasOrder ?o1 . ?xa dds:hasOrder ?o2 .
+                    FILTER (?o1 < ?o2)
+                }
+            }
+        """ ] .
+
+ddsh:RevisionOrderShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Explicit premise revision must come after the premise it revises ({?value})."@en ,
+                   "전제를 명시적으로 수정하는 컴포넌트는 원래 전제({?value})보다 뒤에 와야 한다."@ko ;
+        sh:select """
+            SELECT $this ?value WHERE {
+                $this prov:wasRevisionOf ?value .
+                ?value dds:hasStructure ?anyStructure .
+                FILTER NOT EXISTS { ?value dds:hasChild+ $this . }
+                FILTER NOT EXISTS {
+                    ?pa dds:hasChild* ?value .
+                    ?xa dds:hasChild* $this .
+                    ?parent dds:hasChild|dds:hasComponent ?pa , ?xa .
+                    ?pa dds:hasOrder ?o1 . ?xa dds:hasOrder ?o2 .
+                    FILTER (?o1 < ?o2)
+                }
+            }
+        """ ] .
+
+ddsh:CounterTargetShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Counterargument does not say what it counters (dds:counters)."@en ,
+                   "Counterargument가 무엇을 반박하는지(dds:counters) 없다."@ko ;
+        sh:select """
+            SELECT $this WHERE {
+                $this dds:hasSemantic/a/rdfs:subClassOf* dds:Counterargument .
+                FILTER NOT EXISTS { $this dds:counters ?t . }
+            }
+        """ ] .
+
+ddsh:CritiqueShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Critique needs a target (dds:targets) and a resolution (dds:resolution); missing: {?missing}."@en ,
+                   "Critique에는 대상(dds:targets)과 처리 결과(dds:resolution)가 필요하다. 누락: {?missing}."@ko ;
+        sh:select """
+            SELECT $this ?missing WHERE {
+                $this dds:hasSemantic/a/rdfs:subClassOf* dds:Critique .
+                { FILTER NOT EXISTS { $this dds:targets ?t . }    BIND ("dds:targets" AS ?missing) }
+                UNION
+                { FILTER NOT EXISTS { $this dds:resolution ?r . } BIND ("dds:resolution" AS ?missing) }
+            }
+        """ ] .
+
+ddsh:DeferredCritiqueShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Deferred critique is not carried by any UnresolvedIssue (an UnresolvedIssue with prov:wasDerivedFrom this critique). Disagreements must not disappear."@en ,
+                   "보류된 비평을 이어받는 UnresolvedIssue(prov:wasDerivedFrom 이 비평)가 없다. 합의되지 않은 사항은 사라지면 안 된다."@ko ;
+        sh:select """
+            SELECT $this WHERE {
+                $this dds:hasSemantic/a/rdfs:subClassOf* dds:Critique ;
+                      dds:resolution ?r .
+                ?r skos:notation ?n .
+                FILTER (STR(?n) = "deferred")
+                FILTER NOT EXISTS {
+                    ?u prov:wasDerivedFrom $this ;
+                       dds:hasSemantic/a/rdfs:subClassOf* dds:UnresolvedIssue .
+                }
+            }
+        """ ] .
+
+ddsh:TraceabilityShape a sh:NodeShape ;
+    sh:targetClass dds:Component ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Frame {?frame} requires traceability: this {?kind} component has no {?link} link."@en ,
+                   "Frame {?frame}은 추적성을 요구한다: 이 {?kind} 컴포넌트에 {?link} 연결이 없다."@ko ;
+        sh:select """
+            SELECT DISTINCT $this ?frame ?kind ?link WHERE {
+                ?doc dds:hasComponent/dds:hasChild* $this ; dds:usesFrame ?frame .
+                ?frame dds:requiresTraceability true .
+                {   $this dds:hasSemantic/a/rdfs:subClassOf* dds:Claim .
+                    FILTER NOT EXISTS { $this dds:supportedBy ?e . }
+                    BIND ("Claim" AS ?kind) BIND ("dds:supportedBy" AS ?link) }
+                UNION
+                {   $this dds:hasSemantic/a/rdfs:subClassOf* dds:Decision .
+                    FILTER NOT EXISTS { $this dds:supportedBy ?b . }
+                    BIND ("Decision" AS ?kind) BIND ("dds:supportedBy" AS ?link) }
+            }
+        """ ] .

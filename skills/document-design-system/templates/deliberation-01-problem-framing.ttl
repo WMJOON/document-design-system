@@ -1,0 +1,88 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-01-problem-framing a dds:Document ;
+    skos:prefLabel "«문제 정의 제목»"@ko ;
+    dds:hasComponent <https://example.org/data/component/new-doc-01-problem-framing/details>,
+        <https://example.org/data/component/new-doc-01-problem-framing/overview>,
+        <https://example.org/data/component/new-doc-01-problem-framing/premises> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:ProblemFraming-v1 .
+
+<https://example.org/data/component/new-doc-01-problem-framing/assumption> a dds:Component ;
+    dds:hasContent "«검증 없이 받아들인 가정»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Assumption ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-01-problem-framing/details-h>,
+        <https://example.org/data/component/new-doc-01-problem-framing/goal>,
+        <https://example.org/data/component/new-doc-01-problem-framing/perspective>,
+        <https://example.org/data/component/new-doc-01-problem-framing/problem> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-01-problem-framing/details-h> a dds:Component ;
+    dds:hasContent "문제와 목표"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-01-problem-framing/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-01-problem-framing/goal>,
+        <https://example.org/data/component/new-doc-01-problem-framing/problem> ;
+    dds:hasContent "«한 문단 개요: 누구의 어떤 문제를, 어떤 범위에서 다루는가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/perspective> a dds:Component ;
+    dds:hasContent "«이해관계자 관점»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Perspective ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-01-problem-framing/assumption>,
+        <https://example.org/data/component/new-doc-01-problem-framing/criterion>,
+        <https://example.org/data/component/new-doc-01-problem-framing/premises-h>,
+        <https://example.org/data/component/new-doc-01-problem-framing/scope> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-01-problem-framing/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-01-problem-framing/criterion> a dds:Component ;
+    dds:hasContent "«판단 기준»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/goal> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-01-problem-framing/criterion> ;
+    dds:hasContent "«도달하려는 상태»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Goal ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/problem> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-01-problem-framing/scope> ;
+    dds:hasContent "«문제 진술»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Problem ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-01-problem-framing/scope> a dds:Component ;
+    dds:hasContent "«범위: 포함하는 것과 제외하는 것»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+

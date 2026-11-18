@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """validate — OWL/SHACL validation of DDS ABox files.
 
-Merges ontology/*.ttl (TBox) + instances/design-system.ttl (default DesignSystems)
+Merges ontology/*.ttl (TBox) + instances/design-system.ttl + frames.ttl (default DesignSystems, Frames)
 + the given files, then runs SHACL Core + SHACL-SPARQL with inference disabled.
 
 Usage:
@@ -23,7 +23,7 @@ from dds_lib.graph import format_report, load_data, validate_graph  # noqa: E402
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("files", type=Path, nargs="+")
-    ap.add_argument("--no-defaults", action="store_true", help="do not merge instances/design-system.ttl")
+    ap.add_argument("--no-defaults", action="store_true", help="do not merge instances/design-system.ttl and frames.ttl")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--lang", default="en", help="message language (en|ko)")
     a = ap.parse_args(argv)

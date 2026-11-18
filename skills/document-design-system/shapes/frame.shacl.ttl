@@ -1,0 +1,108 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+# v0.3.0 SHACL Core: DocumentFrame, FrameRequirement, SemanticBinding, component relations, provenance.
+# Validation runs without inference, so PROV values are only checked to be IRIs (no sh:class prov:*).
+
+ddsh:DocumentShape sh:property ddsh:Document-frame , ddsh:Document-provenance .
+
+ddsh:Document-frame a sh:PropertyShape ;
+    sh:path dds:usesFrame ; sh:maxCount 1 ; sh:class dds:DocumentFrame ;
+    sh:message "Document may use at most one DocumentFrame (typed dds:DocumentFrame)."@en ,
+               "Document는 DocumentFrame(dds:DocumentFrame 타입)을 최대 하나만 쓸 수 있다."@ko .
+
+ddsh:Document-provenance a sh:PropertyShape ;
+    sh:path [ sh:alternativePath ( prov:wasDerivedFrom prov:wasRevisionOf ) ] ; sh:nodeKind sh:IRI ;
+    sh:message "Document provenance (prov:wasDerivedFrom / prov:wasRevisionOf) must point to an IRI."@en ,
+               "Document의 출처(prov:wasDerivedFrom / prov:wasRevisionOf)는 IRI를 가리켜야 한다."@ko .
+
+ddsh:DocumentFrameShape a sh:NodeShape ;
+    sh:targetClass dds:DocumentFrame ;
+    sh:property ddsh:Frame-requirement , ddsh:Frame-mapping , ddsh:Frame-designSystem ,
+                ddsh:Frame-traceability , ddsh:Frame-question , ddsh:Frame-revision .
+
+ddsh:Frame-requirement a sh:PropertyShape ;
+    sh:path dds:hasRequirement ; sh:minCount 1 ; sh:class dds:FrameRequirement ;
+    sh:message "DocumentFrame needs at least one FrameRequirement (typed dds:FrameRequirement)."@en ,
+               "DocumentFrame은 FrameRequirement(dds:FrameRequirement 타입)를 하나 이상 가져야 한다."@ko .
+
+ddsh:Frame-mapping a sh:PropertyShape ;
+    sh:path dds:definesPresentationMapping ; sh:class dds:SemanticBinding ;
+    sh:message "definesPresentationMapping value must be a dds:SemanticBinding."@en ,
+               "definesPresentationMapping 값은 dds:SemanticBinding이어야 한다."@ko .
+
+ddsh:Frame-designSystem a sh:PropertyShape ;
+    sh:path dds:compatibleDesignSystem ; sh:class dds:DesignSystem ;
+    sh:message "compatibleDesignSystem value must be a dds:DesignSystem."@en ,
+               "compatibleDesignSystem 값은 dds:DesignSystem이어야 한다."@ko .
+
+ddsh:Frame-traceability a sh:PropertyShape ;
+    sh:path dds:requiresTraceability ; sh:maxCount 1 ; sh:datatype xsd:boolean ;
+    sh:message "requiresTraceability must be a single xsd:boolean."@en ,
+               "requiresTraceability는 xsd:boolean 하나여야 한다."@ko .
+
+ddsh:Frame-question a sh:PropertyShape ;
+    sh:path dds:frameQuestion ; sh:datatype rdf:langString ;
+    sh:message "frameQuestion must be a language-tagged string."@en ,
+               "frameQuestion은 언어 태그가 있는 문자열이어야 한다."@ko .
+
+ddsh:Frame-revision a sh:PropertyShape ;
+    sh:path prov:wasRevisionOf ; sh:class dds:DocumentFrame ;
+    sh:message "A Frame revision must point to the previous dds:DocumentFrame version."@en ,
+               "Frame 개정판의 prov:wasRevisionOf는 이전 dds:DocumentFrame 버전을 가리켜야 한다."@ko .
+
+ddsh:FrameRequirementShape a sh:NodeShape ;
+    sh:targetClass dds:FrameRequirement ;
+    sh:property ddsh:Requirement-semantic , ddsh:Requirement-min .
+
+ddsh:Requirement-semantic a sh:PropertyShape ;
+    sh:path dds:requiredSemantic ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Semantic ;
+    sh:message "FrameRequirement needs exactly one requiredSemantic (dds:Semantic individual)."@en ,
+               "FrameRequirement는 requiredSemantic(dds:Semantic 개체)을 정확히 하나 가져야 한다."@ko .
+
+ddsh:Requirement-min a sh:PropertyShape ;
+    sh:path dds:minOccurs ; sh:maxCount 1 ;
+    sh:or ( [ sh:datatype xsd:integer ] [ sh:datatype xsd:positiveInteger ] ) ;
+    sh:minInclusive 1 ;
+    sh:message "minOccurs must be a single integer >= 1."@en ,
+               "minOccurs는 1 이상의 정수 하나여야 한다."@ko .
+
+ddsh:SemanticBindingShape a sh:NodeShape ;
+    sh:targetClass dds:SemanticBinding ;
+    sh:property ddsh:SemanticBinding-semantic , ddsh:SemanticBinding-presentation .
+
+ddsh:SemanticBinding-semantic a sh:PropertyShape ;
+    sh:path dds:forSemantic ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Semantic ;
+    sh:message "SemanticBinding needs exactly one forSemantic (dds:Semantic individual)."@en ,
+               "SemanticBinding은 forSemantic(dds:Semantic 개체)을 정확히 하나 가져야 한다."@ko .
+
+ddsh:SemanticBinding-presentation a sh:PropertyShape ;
+    sh:path dds:mappedPresentation ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Presentation ;
+    sh:message "SemanticBinding needs exactly one mappedPresentation (dds:Presentation individual)."@en ,
+               "SemanticBinding은 mappedPresentation(dds:Presentation 개체)을 정확히 하나 가져야 한다."@ko .
+
+# ---------------------------------------------------------------- component relations (Core part)
+ddsh:ComponentShape sh:property ddsh:Component-relation , ddsh:Component-resolution , ddsh:Component-provenance .
+
+ddsh:Component-relation a sh:PropertyShape ;
+    sh:path [ sh:alternativePath ( dds:elaboratedBy dds:supportedBy dds:basedOn dds:counters dds:targets ) ] ;
+    sh:class dds:Component ;
+    sh:message "Semantic relation (elaboratedBy / supportedBy / basedOn / counters / targets) must point to a dds:Component."@en ,
+               "의미 관계(elaboratedBy / supportedBy / basedOn / counters / targets)는 dds:Component를 가리켜야 한다."@ko .
+
+ddsh:Component-resolution a sh:PropertyShape ;
+    sh:path dds:resolution ; sh:maxCount 1 ; sh:class skos:Concept ;
+    sh:message "dds:resolution must be one skos:Concept of the resolution scheme."@en ,
+               "dds:resolution은 resolution 체계의 skos:Concept 하나여야 한다."@ko .
+
+ddsh:Component-provenance a sh:PropertyShape ;
+    sh:path [ sh:alternativePath ( prov:wasDerivedFrom prov:hadPrimarySource prov:wasRevisionOf ) ] ; sh:nodeKind sh:IRI ;
+    sh:message "Component provenance (prov:wasDerivedFrom / prov:hadPrimarySource / prov:wasRevisionOf) must be an IRI."@en ,
+               "Component의 출처(prov:wasDerivedFrom / prov:hadPrimarySource / prov:wasRevisionOf)는 IRI여야 한다."@ko .

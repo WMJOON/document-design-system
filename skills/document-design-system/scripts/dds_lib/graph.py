@@ -17,9 +17,14 @@ CONFIG_DIR = SKILL_ROOT / "config"
 DDS = Namespace("https://example.org/ontology/dds#")
 DDSH = Namespace("https://example.org/ontology/dds/shapes#")
 SH = Namespace("http://www.w3.org/ns/shacl#")
+PROV = Namespace("http://www.w3.org/ns/prov#")
+EARL = Namespace("http://www.w3.org/ns/earl#")
 
 DEFAULT_BASE = "https://example.org/data/"
 DEFAULT_DESIGN_SYSTEMS = INSTANCES_DIR / "design-system.ttl"
+DEFAULT_FRAMES = INSTANCES_DIR / "frames.ttl"
+DEFAULT_CRITERIA = INSTANCES_DIR / "evaluation.ttl"
+DEFAULT_INSTANCES = [DEFAULT_DESIGN_SYSTEMS, DEFAULT_FRAMES, DEFAULT_CRITERIA]
 
 
 class DataNS:
@@ -33,6 +38,9 @@ class DataNS:
         self.semantic = Namespace(base + "semantic/")
         self.presentation = Namespace(base + "presentation/")
         self.design = Namespace(base + "design/")
+        self.frame = Namespace(base + "frame/")
+        self.resolution = Namespace(base + "resolution/")
+        self.criterion = Namespace(base + "criterion/")
         self.doc = Namespace(base + "doc/")
         self.component = Namespace(base + "component/")
 
@@ -52,6 +60,10 @@ def bind_prefixes(g: Graph, ns: Optional[DataNS] = None) -> Graph:
     g.bind("semantic", ns.semantic)
     g.bind("presentation", ns.presentation)
     g.bind("design", ns.design)
+    g.bind("frame", ns.frame)
+    g.bind("resolution", ns.resolution)
+    g.bind("prov", PROV)
+    g.bind("criterion", ns.criterion)
     g.bind("doc", ns.doc)
     g.bind("component", ns.component)
     return g
@@ -74,12 +86,12 @@ def load_shapes() -> Graph:
 
 def load_data(paths: Iterable[Path], with_defaults: bool = True, with_tbox: bool = True,
               ns: Optional[DataNS] = None) -> Graph:
-    """Merge TBox + default DesignSystems + given ABox files into one graph."""
+    """Merge TBox + default DesignSystems and Frames + given ABox files into one graph."""
     g = bind_prefixes(Graph(bind_namespaces="core"), ns)
     if with_tbox:
         _parse_all(sorted(ONTOLOGY_DIR.glob("*.ttl")), g)
     if with_defaults:
-        _parse_all([DEFAULT_DESIGN_SYSTEMS], g)
+        _parse_all(DEFAULT_INSTANCES, g)
     _parse_all([Path(p) for p in paths], g)
     return g
 
@@ -102,7 +114,8 @@ def resolve(name: str, default_ns: Namespace, ns: DataNS) -> URIRef:
     if ":" in name:
         prefix, local = name.split(":", 1)
         table = {"structure": ns.structure, "semantic": ns.semantic, "presentation": ns.presentation,
-                 "design": ns.design, "dds": DDS}
+                 "design": ns.design, "frame": ns.frame, "resolution": ns.resolution,
+                 "dds": DDS, "prov": PROV}
         if prefix in table:
             return table[prefix][local]
     return default_ns[name]

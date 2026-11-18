@@ -31,3 +31,78 @@ dds:hasOrder a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:C
 dds:hasContent a owl:DatatypeProperty ; rdfs:domain dds:Component ; rdfs:range rdf:langString .
 dds:ordered a owl:DatatypeProperty ; rdfs:domain dds:Component ; rdfs:range xsd:boolean ;
     rdfs:comment "On a List component: true = ordered (numbered) list."@en .
+
+# v0.3.0 -------------------------------------------------------------------------------------
+# Provenance reuses PROV-O on Documents and Components (no redeclaration here):
+#   prov:wasRevisionOf   Document snapshot -> previous snapshot, DocumentFrame -> previous version
+#   prov:wasDerivedFrom  Document -> deliberation record Document; Component -> Component it came from
+#   prov:wasRevisionOf   (Component) later component -> earlier premise it explicitly revises
+#   prov:hadPrimarySource Evidence component -> external source IRI
+
+# Document -> Frame
+dds:usesFrame a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Document ; rdfs:range dds:DocumentFrame ;
+    rdfs:comment "Pins the document to one Frame version. Optional (0..1)."@en .
+
+# DocumentFrame
+dds:hasRequirement a owl:ObjectProperty ; rdfs:domain dds:DocumentFrame ; rdfs:range dds:FrameRequirement .
+dds:definesPresentationMapping a owl:ObjectProperty ; rdfs:domain dds:DocumentFrame ; rdfs:range dds:SemanticBinding .
+dds:compatibleDesignSystem a owl:ObjectProperty ; rdfs:domain dds:DocumentFrame ; rdfs:range dds:DesignSystem ;
+    rdfs:comment "If stated, documents using this Frame must use one of these DesignSystems."@en .
+dds:requiresTraceability a owl:DatatypeProperty ; rdfs:domain dds:DocumentFrame ; rdfs:range xsd:boolean ;
+    rdfs:comment "true: every Claim and every Decision needs dds:supportedBy."@en .
+dds:frameQuestion a owl:DatatypeProperty ; rdfs:domain dds:DocumentFrame ; rdfs:range rdf:langString ;
+    rdfs:comment "Guiding question the Frame asks the author (guidance, not validated)."@en .
+
+# FrameRequirement
+dds:requiredSemantic a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:FrameRequirement ; rdfs:range dds:Semantic .
+dds:minOccurs a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:FrameRequirement ; rdfs:range xsd:positiveInteger ;
+    rdfs:comment "Minimum number of components carrying the semantic (default 1)."@en .
+
+# SemanticBinding
+dds:forSemantic a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:SemanticBinding ; rdfs:range dds:Semantic .
+dds:mappedPresentation a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:SemanticBinding ; rdfs:range dds:Presentation .
+
+# Component -> Component semantic relations (do not change hierarchy; hasChild stays the only tree edge).
+# Structure owns two properties: Section DEPTH = level of abstraction (a Section's leading content is the
+# overview of its sub-Sections) and sibling ORDER = logical progression. Relations below make the real
+# dependencies explicit; SHACL checks their direction, Semantic Evaluation checks their meaning.
+dds:relatesTo a owl:ObjectProperty ; rdfs:domain dds:Component ; rdfs:range dds:Component ;
+    rdfs:comment "Abstract super-property of semantic relations between components of the same Document."@en .
+dds:elaboratedBy a owl:ObjectProperty ; rdfs:subPropertyOf dds:relatesTo ;
+    rdfs:comment "Overview content -> detail inside a deeper Section that elaborates it (progressive disclosure). Must point DOWN the hierarchy."@en .
+dds:supportedBy a owl:ObjectProperty ; rdfs:subPropertyOf dds:relatesTo ;
+    rdfs:comment "Claim / Decision / Alternative -> Evidence or Rationale that supports it. No order constraint: grounds may come later or deeper."@en .
+dds:basedOn a owl:ObjectProperty ; rdfs:subPropertyOf dds:relatesTo ;
+    rdfs:comment "Premise dependency: component -> the concept, assumption, scope or criterion it presupposes. The premise must come EARLIER in document order. Revise a premise only explicitly (prov:wasRevisionOf)."@en .
+dds:counters a owl:ObjectProperty ; rdfs:subPropertyOf dds:relatesTo ;
+    rdfs:comment "Counterargument -> the claim, alternative or decision it argues against."@en .
+dds:targets a owl:ObjectProperty ; rdfs:subPropertyOf dds:relatesTo ;
+    rdfs:comment "Critique -> the component it reviews."@en .
+
+dds:resolution a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Component ; rdfs:range skos:Concept ;
+    rdfs:comment "Outcome of a Critique: a concept of the resolution scheme (accepted / rejected / deferred)."@en .
+
+# Evaluation (v0.3.0). Results and assessments reuse W3C EARL (earl:Assertion, earl:outcome
+# passed / failed / cantTell / untested = Pass / Fail / NeedsReview / NotEvaluated).
+dds:dimension a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Report group of an evaluation criterion: Structure, Semantic or Presentation."@en .
+dds:assessorModel a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Model identifier of an AI assessor (required when earl:mode is not earl:manual)."@en .
+dds:uncertainty a owl:DatatypeProperty ; rdfs:range rdf:langString ;
+    rdfs:comment "What the assessor could not verify (required for AI assessments)."@en .
+dds:evaluationScope a owl:DatatypeProperty ; rdfs:range rdf:langString ;
+    rdfs:comment "Source set / decision scope / evidence boundary an assessment covers (required for coverage)."@en .
+dds:frameVersion a owl:ObjectProperty ; rdfs:range dds:DocumentFrame ;
+    rdfs:comment "The Frame version a document was evaluated against (evaluation history)."@en .
+# Evaluation cache metadata on AI assessments (semantic evaluation, v0.3.0)
+dds:cacheKey a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Hash of packet content + rule version + prompt version + model route + scope. Reuse only on exact match."@en .
+dds:packetType a owl:DatatypeProperty ; rdfs:range xsd:string ;
+    rdfs:comment "Evaluation packet type that produced the assessment (overview-fidelity, claim-evidence, ...)."@en .
+dds:promptVersion a owl:DatatypeProperty ; rdfs:range xsd:string .
+dds:ruleVersion a owl:DatatypeProperty ; rdfs:range xsd:string .
+dds:confidence a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:comment "Model-reported confidence (0..1). An opinion, not a probability of correctness."@en .
+dds:changesSinceGlobal a owl:DatatypeProperty ; rdfs:range xsd:decimal ;
+    rdfs:comment "Accumulated share of semantically changed components since the last global critique (L2 trigger state)."@en .
+dds:lastGlobalCritique a owl:DatatypeProperty ; rdfs:range xsd:dateTime .

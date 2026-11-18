@@ -79,11 +79,29 @@ def default_presentation(g: Graph, ds: Optional[URIRef], structure: Optional[URI
     return None
 
 
+def frame_presentation(g: Graph, doc: URIRef, comp: URIRef) -> Optional[URIRef]:
+    """Presentation mapped by the document's DocumentFrame for one of the component's semantics.
+    With several mapped semantics the first by semantic IRI wins (evaluate.py flags the ambiguity)."""
+    frame = g.value(doc, DDS.usesFrame)
+    if frame is None:
+        return None
+    mapping = {g.value(b, DDS.forSemantic): g.value(b, DDS.mappedPresentation)
+               for b in g.objects(frame, DDS.definesPresentationMapping)}
+    for sem in sorted(g.objects(comp, DDS.hasSemantic), key=str):
+        if mapping.get(sem) is not None:
+            return mapping[sem]
+    return None
+
+
 def effective_presentation(g: Graph, doc: URIRef, comp: URIRef):
-    """Return (presentation IRI or None, is_explicit)."""
+    """Return (presentation IRI or None, is_explicit).
+    Order: explicit hasPresentation > Frame semantic mapping > DesignSystem structure binding."""
     explicit = g.value(comp, DDS.hasPresentation)
     if explicit is not None:
         return explicit, True
+    mapped = frame_presentation(g, doc, comp)
+    if mapped is not None:
+        return mapped, False
     ds = g.value(doc, DDS.usesDesignSystem)
     return default_presentation(g, ds, g.value(comp, DDS.hasStructure)), False
 
@@ -104,10 +122,13 @@ def title_of(g: Graph, node: URIRef) -> Optional[Literal]:
 class TokenStyle:
     prefix: str = ""
     wrap: str = ""
+    label: str = ""
 
     def apply(self, text: str) -> str:
         if self.wrap:
             text = f"{self.wrap}{text}{self.wrap}"
+        if self.label:
+            text = self.label + text
         if self.prefix:
             text = "\n".join(self.prefix + line for line in text.split("\n"))
         return text
@@ -115,6 +136,8 @@ class TokenStyle:
     def strip(self, text: str) -> str:
         if self.prefix:
             text = "\n".join(l[len(self.prefix):] if l.startswith(self.prefix) else l for l in text.split("\n"))
+        if self.label and text.startswith(self.label):
+            text = text[len(self.label):]
         if self.wrap and text.startswith(self.wrap) and text.endswith(self.wrap) and len(text) >= 2 * len(self.wrap):
             text = text[len(self.wrap):-len(self.wrap)]
         return text
@@ -136,5 +159,6 @@ def load_style_map(path: Optional[Path] = None) -> StyleMap:
     toks = {}
     for k, v in (data.get("tokens") or {}).items():
         v = v or {}
-        toks[str(k)] = TokenStyle(prefix=str(v.get("prefix", "")), wrap=str(v.get("wrap", "")))
+        toks[str(k)] = TokenStyle(prefix=str(v.get("prefix", "")), wrap=str(v.get("wrap", "")),
+                                  label=str(v.get("label", "")))
     return StyleMap(toks)

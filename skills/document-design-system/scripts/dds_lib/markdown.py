@@ -21,7 +21,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from rdflib import Graph, Literal, URIRef
 from rdflib.namespace import RDF, SKOS, XSD
 
-from .graph import DDS, DataNS, bind_prefixes, load_data, resolve
+from .graph import DDS, PROV, DataNS, bind_prefixes, load_data, resolve
 from .model import (children, component_kind, content_of, effective_presentation, load_style_map,
                     local_name, roots, structure_kind, title_of, token_of)
 
@@ -30,6 +30,10 @@ END = re.compile(r"^<!--\s*/dds\s+(\{.*\})\s*-->\s*$")
 HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
 LIST_ITEM = re.compile(r"^(\s*)([-*+]|\d+[.)])\s+(.*)$")
 DEFAULT_ITEM_STRUCT = {"items": "ListItem", "rows": "TableRow", "cells": "TableCell"}
+# v0.3.0: semantic relations and provenance kept in annotations ("rel" / "prov" / "res").
+# Targets are component ids of the same document, or full IRIs.
+REL_PROPS = ("elaboratedBy", "supportedBy", "basedOn", "counters", "targets")
+PROV_PROPS = ("wasDerivedFrom", "hadPrimarySource", "wasRevisionOf")
 
 
 def _dump(d: Dict[str, Any]) -> str:
@@ -117,7 +121,28 @@ class _Ctx:
         c = content_of(g, comp)
         if c is not None and getattr(c, "language", None) != self.lang:
             m["lang"] = c.language
+        rel = self.links(comp, DDS, REL_PROPS)
+        if rel:
+            m["rel"] = rel
+        prov = self.links(comp, PROV, PROV_PROPS)
+        if prov:
+            m["prov"] = prov
+        res = g.value(comp, DDS.resolution)
+        if res is not None:
+            m["res"] = self.compact(res, self.ns.resolution)
         return m
+
+    def target(self, iri) -> str:
+        t = self.ident(iri)
+        return t.get("id", t.get("iri"))
+
+    def links(self, node: URIRef, ns, props) -> Dict[str, List[str]]:
+        out = {}
+        for p in props:
+            vals = sorted(self.target(o) for o in self.g.objects(node, ns[p]))
+            if vals:
+                out[p] = vals
+        return out
 
     def text(self, comp: URIRef) -> str:
         c = content_of(self.g, comp)
@@ -142,6 +167,12 @@ def render(g: Graph, doc: URIRef, annotate: bool = True, style_path: Optional[Pa
                 "base": ctx.base}
         if ctx.lang:
             head["lang"] = ctx.lang
+        frame = g.value(doc, DDS.usesFrame)
+        if frame is not None:
+            head["frame"] = ctx.compact(frame, ctx.ns.frame)
+        prov = ctx.links(doc, PROV, PROV_PROPS)
+        if prov:
+            head["prov"] = prov
         out.append(f"<!-- dds {_dump(head)} -->")
     title = title_of(g, doc)
     block([f"# {title}" if title is not None else f"# {ctx.doc_id}"])
@@ -228,12 +259,26 @@ class _Builder:
             g.add((iri, DDS.hasPresentation, resolve(m["p"], ns.presentation, ns)))
         if "ordered" in m:
             g.add((iri, DDS.ordered, Literal(bool(m["ordered"]))))
+        self.links(iri, m)
+        if m.get("res"):
+            g.add((iri, DDS.resolution, resolve(m["res"], ns.resolution, ns)))
         owner = parent if parent is not None else self.doc
         n = self.order.get(owner, 0) + 1
         self.order[owner] = n
         g.add((iri, DDS.hasOrder, Literal(n, datatype=XSD.integer)))
         g.add((owner, DDS.hasComponent if parent is None else DDS.hasChild, iri))
         return iri
+
+    def target(self, t: str) -> URIRef:
+        return URIRef(t) if "://" in t or t.startswith("urn:") else self.ns.component_iri(self.doc_id, t)
+
+    def links(self, node: URIRef, m: Dict[str, Any]):
+        for key, ns, props in (("rel", DDS, REL_PROPS), ("prov", PROV, PROV_PROPS)):
+            for p, targets in (m.get(key) or {}).items():
+                if p not in props:
+                    raise ParseError(f"unknown {key} property {p!r} in dds annotation")
+                for t in targets:
+                    self.g.add((node, ns[p], self.target(t)))
 
     def kind(self, m: Dict[str, Any], default_struct: str) -> Optional[str]:
         st = resolve(m.get("s", default_struct), self.ns.structure, self.ns)
@@ -288,6 +333,9 @@ def parse(md: str, doc_id: Optional[str] = None, design_system: str = "PlanningS
         i += 1
         b = _Builder(meta["document"], meta.get("design_system", design_system), meta.get("base", base),
                      meta.get("lang", lang))
+        if meta.get("frame"):
+            b.g.add((b.doc, DDS.usesFrame, resolve(meta["frame"], b.ns.frame, b.ns)))
+        b.links(b.doc, {"prov": meta.get("prov")})
         annotated = True
     else:
         b = _Builder(doc_id or "document", design_system, base, lang)

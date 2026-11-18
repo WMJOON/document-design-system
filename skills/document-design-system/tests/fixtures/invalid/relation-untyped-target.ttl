@@ -1,0 +1,86 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix resolution: <https://example.org/data/resolution/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix c: <https://example.org/data/component/search-tool-decision/> .
+
+# INVALID (relation-untyped-target): dds:supportedBy points to a node that is not a component.
+# Derived from valid/decision-record.ttl.
+# Fictional decision record (DecisionRecord-v1).
+# Depth = abstraction: the root paragraphs are the document overview; sections hold the details.
+# Order = logical progression: premises (criterion, scope) come before the decision that depends on them.
+# Exercises every v0.3.0 relation: elaboratedBy (overview -> deeper detail), supportedBy (grounds),
+# basedOn (premise, earlier), counters, targets + resolution (deferred) carried by an UnresolvedIssue
+# (prov:wasDerivedFrom), explicit premise revision (prov:wasRevisionOf, later), prov:hadPrimarySource,
+# Document prov:wasDerivedFrom.
+
+doc:search-tool-decision a dds:Document ;
+    skos:prefLabel "사내 문서 검색 도구 도입 결정"@ko ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:DecisionRecord-v1 ;
+    prov:wasDerivedFrom doc:search-tool-deliberation ;
+    dds:hasComponent c:overview , c:question , c:premises , c:details , c:open .
+
+# Overview (document level) -----------------------------------------------------
+c:overview a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 1 ;
+    dds:hasSemantic semantic:Claim ;
+    dds:elaboratedBy c:decision , c:claim ;
+    dds:supportedBy c:evidence ;
+    dds:hasContent "검색 도구를 한 팀에 시범 도입한다. 검색 시간이 줄어든다는 근거가 있으나 비용 기준에는 이견이 남아 있다."@ko .
+c:question a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 2 ;
+    dds:hasSemantic semantic:DecisionQuestion ;
+    dds:hasContent "내부 문서 검색 도구를 이번 분기에 도입할 것인가?"@ko .
+
+# Premises --------------------------------------------------------------------
+c:premises a dds:Component ; dds:hasStructure structure:Section ; dds:hasOrder 3 ;
+    dds:hasChild c:premises-h , c:scope , c:criterion .
+c:premises-h a dds:Component ; dds:hasStructure structure:Heading ; dds:hasOrder 1 ;
+    dds:hasContent "전제"@ko .
+c:scope a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasContent "범위: 사내 위키와 공유 드라이브 문서. 외부 고객 문서는 제외한다."@ko .
+c:criterion a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasContent "판단 기준: 3개월 안에 되돌릴 수 있어야 한다."@ko .
+
+# Details ---------------------------------------------------------------------
+c:details a dds:Component ; dds:hasStructure structure:Section ; dds:hasOrder 4 ;
+    dds:hasChild c:details-h , c:decision , c:rationale , c:claim , c:evidence , c:counter , c:critique .
+c:details-h a dds:Component ; dds:hasStructure structure:Heading ; dds:hasOrder 1 ;
+    dds:hasContent "결정과 근거"@ko .
+c:decision a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Decision ; dds:basedOn c:scope , c:criterion ; dds:supportedBy c:rationale ;
+    dds:hasContent "한 팀을 대상으로 3개월 시범 도입한다."@ko .
+c:rationale a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Rationale ;
+    dds:hasContent "전사 도입 전에 실제 사용량을 확인할 수 있고 되돌리기 쉽다."@ko .
+c:claim a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Claim ; dds:supportedBy c:missing-evidence ;
+    dds:hasContent "문서를 찾는 데 드는 시간이 줄어든다."@ko .
+c:evidence a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 5 ;
+    dds:hasSemantic semantic:Evidence ;
+    prov:hadPrimarySource <https://example.org/sources/pilot-survey> ;
+    dds:hasContent "가상 설문: 응답자 다수가 문서 검색에 주당 1시간 이상을 쓴다고 답했다."@ko .
+c:counter a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 6 ;
+    dds:hasSemantic semantic:Counterargument ; dds:counters c:claim ;
+    dds:hasContent "설문은 자기 보고라 실제 시간과 다를 수 있다."@ko .
+c:critique a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 7 ;
+    dds:hasSemantic semantic:Critique ; dds:targets c:criterion ; dds:resolution resolution:deferred ;
+    dds:hasContent "되돌림 가능성만으로는 시범 성공을 판단할 수 없다. 비용 기준이 필요하다."@ko .
+
+# Open issues and explicit premise revision -------------------------------------
+c:open a dds:Component ; dds:hasStructure structure:Section ; dds:hasOrder 5 ;
+    dds:hasChild c:open-h , c:criterion-rev , c:issue .
+c:open-h a dds:Component ; dds:hasStructure structure:Heading ; dds:hasOrder 1 ;
+    dds:hasContent "미해결과 전제 변경"@ko .
+c:criterion-rev a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Criterion ; prov:wasRevisionOf c:criterion ;
+    dds:hasContent "전제 변경(제안): 판단 기준에 팀당 월 비용 상한을 추가한다. 결정에 미치는 영향은 재검토가 필요하다."@ko .
+c:issue a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 3 ;
+    dds:hasSemantic semantic:UnresolvedIssue ; prov:wasDerivedFrom c:critique ;
+    dds:hasContent "비용 상한의 금액은 아직 합의되지 않았다."@ko .

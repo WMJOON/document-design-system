@@ -4,6 +4,7 @@
 @prefix semantic: <https://example.org/data/semantic/> .
 @prefix presentation: <https://example.org/data/presentation/> .
 @prefix design: <https://example.org/data/design/> .
+@prefix resolution: <https://example.org/data/resolution/> .
 
 # Reusable type / style individuals (ABox). Classes live in ontology/*.ttl (no punning).
 
@@ -24,12 +25,45 @@ semantic:Evidence    a dds:Evidence    ; skos:prefLabel "Evidence"@en .
 semantic:Assumption  a dds:Assumption  ; skos:prefLabel "Assumption"@en .
 semantic:Description a dds:Description ; skos:prefLabel "Description"@en .
 
+# v0.3.0 deliberation semantics
+semantic:Problem          a dds:Problem          ; skos:prefLabel "Problem"@en .
+semantic:Goal             a dds:Goal             ; skos:prefLabel "Goal"@en .
+semantic:Scope            a dds:Scope            ; skos:prefLabel "Scope"@en .
+semantic:DecisionQuestion a dds:DecisionQuestion ; skos:prefLabel "Decision question"@en .
+semantic:Criterion        a dds:Criterion        ; skos:prefLabel "Criterion"@en .
+semantic:Alternative      a dds:Alternative      ; skos:prefLabel "Alternative"@en .
+semantic:Claim            a dds:Claim            ; skos:prefLabel "Claim"@en .
+semantic:Counterargument  a dds:Counterargument  ; skos:prefLabel "Counterargument"@en .
+semantic:Perspective      a dds:Perspective      ; skos:prefLabel "Perspective"@en .
+semantic:Risk             a dds:Risk             ; skos:prefLabel "Risk"@en .
+semantic:Rationale        a dds:Rationale        ; skos:prefLabel "Rationale"@en .
+semantic:Critique         a dds:Critique         ; skos:prefLabel "Critique"@en .
+semantic:UnresolvedIssue  a dds:UnresolvedIssue  ; skos:prefLabel "Unresolved issue"@en .
+
+# Critique resolution (agreement / disagreement / hold). skos:notation is the stable key.
+resolution:scheme a skos:ConceptScheme ; skos:prefLabel "Critique resolution"@en .
+resolution:accepted a skos:Concept ; skos:inScheme resolution:scheme ; skos:notation "accepted" ;
+    skos:prefLabel "Accepted"@en , "반영"@ko ; skos:definition "The critique is applied to the document."@en .
+resolution:rejected a skos:Concept ; skos:inScheme resolution:scheme ; skos:notation "rejected" ;
+    skos:prefLabel "Rejected"@en , "기각"@ko ; skos:definition "The critique is not applied. The critique component is kept."@en .
+resolution:deferred a skos:Concept ; skos:inScheme resolution:scheme ; skos:notation "deferred" ;
+    skos:prefLabel "Deferred"@en , "보류"@ko ; skos:definition "No agreement yet. Must be carried by an UnresolvedIssue (prov:wasDerivedFrom the critique)."@en .
+
 presentation:Heading1  a dds:Typography ; skos:prefLabel "Heading 1"@en ; dds:token "heading-1" .
 presentation:Heading2  a dds:Typography ; skos:prefLabel "Heading 2"@en ; dds:token "heading-2" .
 presentation:Body      a dds:Typography ; skos:prefLabel "Body"@en ; dds:token "body" .
 presentation:Emphasis  a dds:Typography ; skos:prefLabel "Emphasis"@en ; dds:token "emphasis" .
 presentation:Callout   a dds:Style      ; skos:prefLabel "Callout"@en ; dds:token "callout" .
 presentation:Compact   a dds:Layout     ; skos:prefLabel "Compact"@en ; dds:token "compact" .
+
+# v0.3.0 deliberation styles: one distinguishable, repeatable pattern per kind of meaning.
+# They are chosen by DocumentFrame SemanticBindings; Presentation never decides meaning.
+presentation:DecisionBox  a dds:Style ; skos:prefLabel "Decision box"@en ; dds:token "decision" .
+presentation:PremiseNote  a dds:Style ; skos:prefLabel "Premise note"@en ; dds:token "premise" .
+presentation:EvidenceNote a dds:Style ; skos:prefLabel "Evidence note"@en ; dds:token "evidence" .
+presentation:CounterNote  a dds:Style ; skos:prefLabel "Counterpoint note"@en ; dds:token "counter" .
+presentation:CritiqueNote a dds:Style ; skos:prefLabel "Critique note"@en ; dds:token "critique" .
+presentation:OpenIssue    a dds:Style ; skos:prefLabel "Open issue"@en ; dds:token "open-issue" .
 
 # Planning design system ------------------------------------------------------
 design:PlanningSystem a dds:DesignSystem ;
@@ -56,4 +90,25 @@ design:MemoSystem a dds:DesignSystem ;
     dds:hasDefaultPresentation design:MemoSystem-Paragraph .
 
 design:MemoSystem-Paragraph a dds:PresentationBinding ;
+    dds:forStructure structure:Paragraph ; dds:presentation presentation:Body .
+
+# Deliberation design system (v0.3.0) — all structures, all semantics ---------
+# Planning / Memo systems above are unchanged.
+design:DeliberationSystem a dds:DesignSystem ;
+    skos:prefLabel "Deliberation Design System"@en ;
+    dds:supportsStructure structure:Section , structure:Heading , structure:Paragraph ,
+        structure:List , structure:ListItem , structure:Table , structure:TableRow , structure:TableCell ;
+    dds:supportsSemantic semantic:Requirement , semantic:Policy , semantic:Constraint ,
+        semantic:Decision , semantic:Evidence , semantic:Assumption , semantic:Description ,
+        semantic:Problem , semantic:Goal , semantic:Scope , semantic:DecisionQuestion , semantic:Criterion ,
+        semantic:Alternative , semantic:Claim , semantic:Counterargument , semantic:Perspective ,
+        semantic:Risk , semantic:Rationale , semantic:Critique , semantic:UnresolvedIssue ;
+    dds:supportsPresentation presentation:Heading1 , presentation:Heading2 , presentation:Body ,
+        presentation:Emphasis , presentation:Callout , presentation:DecisionBox , presentation:PremiseNote ,
+        presentation:EvidenceNote , presentation:CounterNote , presentation:CritiqueNote , presentation:OpenIssue ;
+    dds:hasDefaultPresentation design:DeliberationSystem-Heading , design:DeliberationSystem-Paragraph .
+
+design:DeliberationSystem-Heading a dds:PresentationBinding ;
+    dds:forStructure structure:Heading ; dds:presentation presentation:Heading1 .
+design:DeliberationSystem-Paragraph a dds:PresentationBinding ;
     dds:forStructure structure:Paragraph ; dds:presentation presentation:Body .

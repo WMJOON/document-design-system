@@ -1,0 +1,87 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+
+# Standard DocumentFrames (ABox), version 1. Loaded by default with design-system.ttl.
+# A Frame is versioned by IRI (-v1, -v2 ...). A revision is a NEW individual with
+# prov:wasRevisionOf the previous one; never edit a published version in place, so documents
+# pinned with dds:usesFrame keep their meaning. Requirements and mappings are named
+# <frame>-<key> so they stay stable too.
+
+frame:ProblemFraming-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Problem Framing Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability false ;
+    dds:frameQuestion "What is the problem, for whom, within which scope, and how will success be judged?"@en , "무엇이 문제이고, 누구에게, 어떤 범위에서, 성공을 무엇으로 판단하는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:ProblemFraming-v1-problem , frame:ProblemFraming-v1-scope , frame:ProblemFraming-v1-goal , frame:ProblemFraming-v1-criterion .
+frame:ProblemFraming-v1-problem a dds:FrameRequirement ; dds:requiredSemantic semantic:Problem ; dds:minOccurs 1 .
+frame:ProblemFraming-v1-scope a dds:FrameRequirement ; dds:requiredSemantic semantic:Scope ; dds:minOccurs 1 .
+frame:ProblemFraming-v1-goal a dds:FrameRequirement ; dds:requiredSemantic semantic:Goal ; dds:minOccurs 1 .
+frame:ProblemFraming-v1-criterion a dds:FrameRequirement ; dds:requiredSemantic semantic:Criterion ; dds:minOccurs 1 .
+
+frame:DecisionQuestion-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Decision Question Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability false ;
+    dds:frameQuestion "What exactly must be decided, by which criteria, under which constraints?"@en , "정확히 무엇을 어떤 기준과 제약 아래에서 결정해야 하는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:DecisionQuestion-v1-decisionQuestion , frame:DecisionQuestion-v1-criterion .
+frame:DecisionQuestion-v1-decisionQuestion a dds:FrameRequirement ; dds:requiredSemantic semantic:DecisionQuestion ; dds:minOccurs 1 .
+frame:DecisionQuestion-v1-criterion a dds:FrameRequirement ; dds:requiredSemantic semantic:Criterion ; dds:minOccurs 1 .
+
+frame:AlternativeComparison-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Alternative Comparison Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability false ;
+    dds:frameQuestion "Which alternatives exist, how do they compare on each criterion, and what is left unclassified?"@en , "어떤 대안이 있고, 기준별로 어떻게 비교되며, 무엇이 미분류로 남았는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:AlternativeComparison-v1-alternative , frame:AlternativeComparison-v1-criterion , frame:AlternativeComparison-v1-evidence .
+frame:AlternativeComparison-v1-alternative a dds:FrameRequirement ; dds:requiredSemantic semantic:Alternative ; dds:minOccurs 2 .
+frame:AlternativeComparison-v1-criterion a dds:FrameRequirement ; dds:requiredSemantic semantic:Criterion ; dds:minOccurs 1 .
+frame:AlternativeComparison-v1-evidence a dds:FrameRequirement ; dds:requiredSemantic semantic:Evidence ; dds:minOccurs 1 .
+
+frame:IndependentCritique-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Independent Critique Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability false ;
+    dds:frameQuestion "What is missing, duplicated, biased or unsupported, and what happens to each remark?"@en , "무엇이 누락·중복·편향되었거나 근거가 부족하며, 각 지적은 어떻게 처리되는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:IndependentCritique-v1-critique .
+frame:IndependentCritique-v1-critique a dds:FrameRequirement ; dds:requiredSemantic semantic:Critique ; dds:minOccurs 1 .
+
+frame:DeliberationRevision-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Deliberation Revision Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability false ;
+    dds:frameQuestion "What changed after critique and feedback, and what is still open?"@en , "비평과 피드백 이후 무엇이 바뀌었고, 무엇이 아직 열려 있는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:DeliberationRevision-v1-critique , frame:DeliberationRevision-v1-unresolvedIssue .
+frame:DeliberationRevision-v1-critique a dds:FrameRequirement ; dds:requiredSemantic semantic:Critique ; dds:minOccurs 1 .
+frame:DeliberationRevision-v1-unresolvedIssue a dds:FrameRequirement ; dds:requiredSemantic semantic:UnresolvedIssue ; dds:minOccurs 1 .
+
+frame:DecisionRecord-v1 a dds:DocumentFrame ;
+    skos:prefLabel "Decision Record Frame"@en ; owl:versionInfo "1" ;
+    dds:compatibleDesignSystem design:DeliberationSystem ;
+    dds:requiresTraceability true ;
+    dds:frameQuestion "What was decided, on what basis, and what remains unresolved?"@en , "무엇을 결정했고, 무엇을 근거로 했으며, 무엇이 미해결로 남았는가?"@ko ;
+    dds:definesPresentationMapping frame:style-decision-v1 , frame:style-scope-v1 , frame:style-criterion-v1 , frame:style-assumption-v1 , frame:style-evidence-v1 , frame:style-counter-v1 , frame:style-critique-v1 , frame:style-open-issue-v1 ;
+    dds:hasRequirement frame:DecisionRecord-v1-decisionQuestion , frame:DecisionRecord-v1-decision , frame:DecisionRecord-v1-rationale .
+frame:DecisionRecord-v1-decisionQuestion a dds:FrameRequirement ; dds:requiredSemantic semantic:DecisionQuestion ; dds:minOccurs 1 .
+frame:DecisionRecord-v1-decision a dds:FrameRequirement ; dds:requiredSemantic semantic:Decision ; dds:minOccurs 1 .
+frame:DecisionRecord-v1-rationale a dds:FrameRequirement ; dds:requiredSemantic semantic:Rationale ; dds:minOccurs 1 .
+
+# Shared semantic -> presentation mappings (v1). Every standard Frame uses the same set, so a
+# Decision or Counterargument looks the same in every deliberation document (consistency).
+frame:style-decision-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Decision ; dds:mappedPresentation presentation:DecisionBox .
+frame:style-scope-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Scope ; dds:mappedPresentation presentation:PremiseNote .
+frame:style-criterion-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Criterion ; dds:mappedPresentation presentation:PremiseNote .
+frame:style-assumption-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Assumption ; dds:mappedPresentation presentation:PremiseNote .
+frame:style-evidence-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Evidence ; dds:mappedPresentation presentation:EvidenceNote .
+frame:style-counter-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Counterargument ; dds:mappedPresentation presentation:CounterNote .
+frame:style-critique-v1 a dds:SemanticBinding ; dds:forSemantic semantic:Critique ; dds:mappedPresentation presentation:CritiqueNote .
+frame:style-open-issue-v1 a dds:SemanticBinding ; dds:forSemantic semantic:UnresolvedIssue ; dds:mappedPresentation presentation:OpenIssue .

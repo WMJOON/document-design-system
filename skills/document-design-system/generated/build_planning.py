@@ -6,6 +6,13 @@ Usage:
     d.add(d.section("overview", d.heading("overview-title", "개요"),
                     d.description("overview-desc", "...")))
     d.write("my.ttl")      # then: python3 scripts/validate.py my.ttl
+
+Links (v0.3.0): every method takes keyword links, resolved after the whole tree is built, so a
+target may appear later. Targets are component ids of this document or full IRIs.
+    d.decision("dec", "...", basedOn=["crit"], supportedBy=["why"])
+    d.critique("cr1", "...", targets=["dec"], resolution="deferred")
+    d.unresolved_issue("u1", "...", wasDerivedFrom=["cr1"])
+Document-level: Doc(..., frame="DecisionRecord-v1", derived_from=[iri], revision_of=[iri]).
 """
 from rdflib import Graph, Literal, Namespace, URIRef
 from rdflib.namespace import RDF, SKOS
@@ -14,18 +21,28 @@ BASE = "https://example.org/data/"
 DDS = Namespace("https://example.org/ontology/dds#")
 DESIGN_SYSTEM = "PlanningSystem"
 _NS = {k: Namespace(BASE + k + "/") for k in
-       ("structure", "semantic", "presentation", "design", "doc", "component")}
+       ("structure", "semantic", "presentation", "design", "doc", "component", "frame", "resolution")}
+
+PROV = Namespace("http://www.w3.org/ns/prov#")
+LINKS = {"elaboratedBy": DDS, "supportedBy": DDS, "basedOn": DDS, "counters": DDS, "targets": DDS,
+         "wasDerivedFrom": PROV, "hadPrimarySource": PROV, "wasRevisionOf": PROV}
 
 
 class Node:
-    def __init__(self, id, structure, sem=(), pres=None, content=None, children=(), ordered=None):
+    def __init__(self, id, structure, sem=(), pres=None, content=None, children=(), ordered=None, links=None):
         self.id, self.structure, self.sem, self.pres = id, structure, tuple(sem), pres
         self.content, self.children, self.ordered = content, list(children), ordered
+        self.links = dict(links or {})
+        bad = set(self.links) - set(LINKS) - {"resolution"}
+        if bad:
+            raise ValueError(f"unknown link(s) on {id}: {sorted(bad)}")
 
 
 class Doc:
-    def __init__(self, id, title, lang="ko", design_system=DESIGN_SYSTEM):
+    def __init__(self, id, title, lang="ko", design_system=DESIGN_SYSTEM, frame=None,
+                 derived_from=(), revision_of=()):
         self.id, self.title, self.lang, self.ds = id, title, lang, design_system
+        self.frame, self.derived_from, self.revision_of = frame, list(derived_from), list(revision_of)
         self.roots = []
 
     def add(self, *nodes):
@@ -47,7 +64,15 @@ class Doc:
         g.add((doc, RDF.type, DDS.Document))
         g.add((doc, SKOS.prefLabel, Literal(self.title, lang=self.lang)))
         g.add((doc, DDS.usesDesignSystem, _NS["design"][self.ds]))
+        if self.frame:
+            g.bind("frame", _NS["frame"])
+            g.add((doc, DDS.usesFrame, _NS["frame"][self.frame]))
+        for p, vals in (("wasDerivedFrom", self.derived_from), ("wasRevisionOf", self.revision_of)):
+            for v in vals:
+                g.bind("prov", PROV)
+                g.add((doc, PROV[p], URIRef(v)))
         seen = set()
+        pending = []
 
         def emit(node, order, parent):
             if node.id in seen:
@@ -66,50 +91,68 @@ class Doc:
             if node.content is not None:
                 g.add((iri, DDS.hasContent, Literal(node.content, lang=self.lang)))
             g.add(((parent, DDS.hasChild, iri) if parent else (doc, DDS.hasComponent, iri)))
+            if node.links:
+                pending.append((iri, node.id, node.links))
             for i, c in enumerate(node.children, 1):
                 emit(c, i, iri)
 
         for i, r in enumerate(self.roots, 1):
             emit(r, i, None)
+        for iri, nid, links in pending:
+            for p, vals in sorted(links.items()):
+                if p == "resolution":
+                    g.bind("resolution", _NS["resolution"])
+                    g.add((iri, DDS.resolution, _NS["resolution"][vals]))
+                    continue
+                if LINKS[p] == PROV:
+                    g.bind("prov", PROV)
+                for v in ([vals] if isinstance(vals, str) else vals):
+                    if "://" in v:
+                        t = URIRef(v)
+                    elif v in seen:
+                        t = _NS["component"][f"{self.id}/{v}"]
+                    else:
+                        raise ValueError(f"{nid}.{p}: unknown component id {v!r}")
+                    g.add((iri, LINKS[p][p], t))
         if path:
             g.serialize(destination=str(path), format="turtle")
         return g
 
-    def assumption(self, id, content):
-        return Node(id, 'Paragraph', ('Assumption',), 'Emphasis', content=content)
+    def assumption(self, id, content, **links):
+        return Node(id, 'Paragraph', ('Assumption',), 'Emphasis', content=content, links=links)
 
     def bullet_list(self, id, *items, ordered=False):
         return Node(id, 'List', children=self._items(id + "-i", items, 'ListItem', ((), None)), ordered=ordered)
 
-    def cell(self, id, content):
-        return Node(id, 'TableCell', (), None, content=content)
+    def cell(self, id, content, **links):
+        return Node(id, 'TableCell', (), None, content=content, links=links)
 
-    def constraint_item(self, id, content):
-        return Node(id, 'ListItem', ('Constraint',), None, content=content)
+    def constraint_item(self, id, content, **links):
+        return Node(id, 'ListItem', ('Constraint',), None, content=content, links=links)
 
-    def decision_cell(self, id, content):
-        return Node(id, 'TableCell', ('Decision',), None, content=content)
+    def decision_cell(self, id, content, **links):
+        return Node(id, 'TableCell', ('Decision',), None, content=content, links=links)
 
-    def decision_note(self, id, content):
-        return Node(id, 'Paragraph', ('Decision',), None, content=content)
+    def decision_note(self, id, content, **links):
+        return Node(id, 'Paragraph', ('Decision',), None, content=content, links=links)
 
-    def description(self, id, content):
-        return Node(id, 'Paragraph', ('Description',), None, content=content)
+    def description(self, id, content, **links):
+        return Node(id, 'Paragraph', ('Description',), None, content=content, links=links)
 
-    def evidence_cell(self, id, content):
-        return Node(id, 'TableCell', ('Evidence',), None, content=content)
+    def evidence_cell(self, id, content, **links):
+        return Node(id, 'TableCell', ('Evidence',), None, content=content, links=links)
 
-    def heading(self, id, content):
-        return Node(id, 'Heading', (), None, content=content)
+    def heading(self, id, content, **links):
+        return Node(id, 'Heading', (), None, content=content, links=links)
 
-    def list_item(self, id, content):
-        return Node(id, 'ListItem', (), None, content=content)
+    def list_item(self, id, content, **links):
+        return Node(id, 'ListItem', (), None, content=content, links=links)
 
-    def requirement(self, id, content):
-        return Node(id, 'Paragraph', ('Requirement',), 'Callout', content=content)
+    def requirement(self, id, content, **links):
+        return Node(id, 'Paragraph', ('Requirement',), 'Callout', content=content, links=links)
 
-    def section(self, id, *children):
-        return Node(id, 'Section', children=children)
+    def section(self, id, *children, **links):
+        return Node(id, 'Section', children=children, links=links)
 
     def table(self, id, *rows):
         out = []

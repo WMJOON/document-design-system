@@ -119,3 +119,61 @@ def test_plain_heading_glued_to_paragraph():
     contents = {str(o) for o in g.objects(None, DDS.hasContent)}
     assert {"결론", "다음 분기에 착수한다.", "근거", "문의량 증가"} <= contents
     assert sum(1 for c in g.subjects(DDS.hasStructure, None) if component_kind(full, c) == "Section") == 2
+
+
+# ---------------------------------------------------------------- v0.3.0 deliberation documents
+DECISION = FIXTURES / "valid" / "decision-record.ttl"
+
+
+def test_deliberation_roundtrip_keeps_frame_relations_and_provenance():
+    g0 = Graph().parse(DECISION)
+    doc = documents(g0)[0]
+    md = render(merge(g0), doc)
+    g1, doc1 = parse(md)
+    assert doc1 == doc
+    assert isomorphic(g0, g1), "frame, relations, resolution and PROV links must survive TTL -> MD -> TTL"
+    assert validate_graph(merge(g1)).conforms
+
+
+def test_frame_mapping_styles_render_and_strip():
+    g0 = Graph().parse(DECISION)
+    doc = documents(g0)[0]
+    plain = render(merge(g0), doc, annotate=False)
+    assert "> **Decision** — 한 팀을 대상으로" in plain
+    assert "> **Counterpoint** — " in plain
+    assert "**Open issue** — " in plain
+    g1, _ = parse(render(merge(g0), doc))
+    texts = {str(o) for o in g1.objects(None, DDS.hasContent)}
+    assert "한 팀을 대상으로 3개월 시범 도입한다." in texts  # label/prefix stripped, content exact
+
+
+def test_document_without_frame_renders_as_before():
+    """No usesFrame -> Frame mappings are never consulted (v0.2.0 output unchanged)."""
+    g0 = Graph().parse(PROPOSAL)
+    plain = render(merge(g0), documents(g0)[0], annotate=False)
+    assert "**Decision** — " not in plain and "**Premise** — " not in plain
+
+
+def test_frame_labels_inside_list_items_and_table_cells_roundtrip(tmp_path):
+    import importlib.util
+    from _util import SKILL
+    spec = importlib.util.spec_from_file_location("bd", SKILL / "generated" / "build_deliberation.py")
+    B = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(B)
+    d = B.Doc("lt", "목록과 표", frame="AlternativeComparison-v1")
+    d.add(d.section("s", d.heading("h", "비교"),
+          d.bullet_list("l", d.criterion_item("c1", "비용 기준"), d.risk_item("r1", "위험"),
+                        B.Node("ca", "ListItem", ("Counterargument",), content="여러 줄\n반론", links={"counters": ["a1"]}),
+                        "평문"),
+          d.table("t", ["대안", "기준", "근거"],
+                  [d.alternative_cell("a1", "A안"), d.criterion_cell("c2", "비용"), d.evidence_cell("e1", "견적 | 포함")],
+                  ["B안", d.criterion_cell("c3", "비용"), d.evidence_cell("e2", "견적2")]),
+          d.alternative("a2", "B안 설명")))
+    g0 = d.write(tmp_path / "lt.ttl")
+    assert validate_graph(merge(g0)).conforms
+    doc = documents(g0)[0]
+    plain = render(merge(g0), doc, annotate=False)
+    assert "- **Premise** — 비용 기준" in plain and "- > **Counterpoint** — " in plain
+    assert "| A안 | **Premise** — 비용 | *Evidence* — 견적 \\| 포함 |" in plain
+    g1, _ = parse(render(merge(g0), doc))
+    assert isomorphic(g0, g1)

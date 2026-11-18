@@ -1,6 +1,8 @@
 # Presentation token -> Markdown rendering rule.
 # Heading level is STRUCTURAL (derived from Section depth), never from Presentation.
-# Supported keys per token: wrap (inline wrapper), prefix (line prefix).
+# Supported keys per token: wrap (inline wrapper), label (marker before the first line),
+# prefix (line prefix). Applied as prefix(label + wrap(text)); parse strips them in reverse.
+# Labels are English by default; pass your own map with --style to localise them.
 tokens:
   heading-1: {}
   heading-2: {}
@@ -10,3 +12,18 @@ tokens:
   callout:
     prefix: "> "
   compact: {}
+  # v0.3.0 deliberation styles (selected by DocumentFrame semantic mappings)
+  decision:
+    prefix: "> "
+    label: "**Decision** — "
+  premise:
+    label: "**Premise** — "
+  evidence:
+    label: "*Evidence* — "
+  counter:
+    prefix: "> "
+    label: "**Counterpoint** — "
+  critique:
+    label: "**Critique** — "
+  open-issue:
+    label: "**Open issue** — "

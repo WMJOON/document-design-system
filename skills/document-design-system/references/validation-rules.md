@@ -31,6 +31,28 @@ with `inference="none"`. Without inference, `rdfs:range` cannot make a dangling
 | `ddsh:BindingSupportedShape` | SPARQL | default bindings use supported structure + presentation | |
 | `ddsh:UniqueBindingShape` | SPARQL | ≤ 1 default binding per structure | |
 
+| v0.3.0 | | | |
+| `ddsh:Document-frame` | Core | ≤ 1 `usesFrame`, typed `dds:DocumentFrame` | pin one Frame version |
+| `ddsh:Document-provenance`, `ddsh:Component-provenance` | Core | PROV links are IRIs | |
+| `ddsh:Frame-*`, `ddsh:Requirement-*`, `ddsh:SemanticBinding-*` | Core | Frame needs ≥ 1 requirement; requirement = 1 semantic + `minOccurs` ≥ 1; binding = 1 semantic + 1 presentation | fix the Frame definition |
+| `ddsh:Component-relation` | Core | relation targets are `dds:Component`s | |
+| `ddsh:Component-resolution` | Core | ≤ 1 resolution, a `skos:Concept` | use `resolution:accepted/rejected/deferred` |
+| `ddsh:FrameContractShape` | SPARQL | each Frame requirement met (count of components with the semantic ≥ `minOccurs`) | add the missing component |
+| `ddsh:FrameDesignSystemShape` | SPARQL | DS ∈ Frame `compatibleDesignSystem` (if stated) | |
+| `ddsh:MappingSupportedShape`, `ddsh:UniqueMappingShape` | SPARQL | Frame mappings use supported semantics / presentations; ≤ 1 per semantic | |
+| `ddsh:RelationTargetShape` | SPARQL | relation target in the same Document | |
+| `ddsh:ElaborationDepthShape` | SPARQL | `elaboratedBy` points into a sub-Section (depth) | move the detail under the overview's Section |
+| `ddsh:PremiseOrderShape` | SPARQL | `basedOn` premise precedes the dependent (order) | move the premise earlier |
+| `ddsh:RevisionOrderShape` | SPARQL | `wasRevisionOf` follows the revised premise | |
+| `ddsh:CounterTargetShape` | SPARQL | Counterargument has `counters` | |
+| `ddsh:CritiqueShape` | SPARQL | Critique has `targets` and `resolution` | |
+| `ddsh:DeferredCritiqueShape` | SPARQL | deferred critique carried by an UnresolvedIssue | add the issue, `wasDerivedFrom` the critique |
+| `ddsh:TraceabilityShape` | SPARQL | Frame `requiresTraceability`: Claim and Decision have `supportedBy` | link the grounds |
+| `ddsh:Assessment-*`, `ddsh:AIAssessmentShape`, `ddsh:CoverageScopeShape` | Core / SPARQL | assessment records complete (see evaluation.md) | |
+
+These rules check structure and explicit links only. Meaning (is the evidence sufficient, is the
+overview faithful, is a premise used consistently) is evaluated by `evaluate.py`, not by SHACL.
+
 Notes:
 - A cycle reachable from a Document also triggers `SingleParentShape`, because the entry node has
   two parents.

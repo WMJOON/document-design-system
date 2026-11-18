@@ -1,0 +1,42 @@
+# Benchmark scenarios (fictional) on valid/decision-record.ttl.
+# Each scenario edits the base document once. `errors` are injected semantic errors with their locus
+# (component id) and the criterion that should catch them; `global: true` means only a whole-document
+# review can see it (no recorded relation leads to it). Clean scenarios have no errors.
+base: ../valid/decision-record.ttl
+scenarios:
+  - id: s0-rerun
+    note: unchanged document evaluated again
+    edits: []
+    errors: []
+  - id: s1-typo
+    note: cosmetic edit (spacing, punctuation)
+    edits: [["한 팀을 대상으로 3개월 시범 도입한다.", "한 팀을 대상으로  3개월 시범 도입한다"]]
+    errors: []
+  - id: s2-presentation
+    note: presentation-only change
+    edits: [["dds:hasSemantic semantic:Rationale ;", "dds:hasSemantic semantic:Rationale ; dds:hasPresentation <https://example.org/data/presentation/Emphasis> ;"]]
+    errors: []
+  - id: s3-evidence-contradicts
+    note: evidence now contradicts the claim it supports
+    edits: [["가상 설문: 응답자 다수가 문서 검색에 주당 1시간 이상을 쓴다고 답했다.", "가상 설문: 응답자 대부분이 문서 검색에 거의 시간을 쓰지 않는다고 답했다."]]
+    errors: [{locus: claim, criterion: claim-evidence}]
+  - id: s4-overview-contradicts
+    note: overview states a different decision than the details
+    edits: [["검색 도구를 한 팀에 시범 도입한다.", "검색 도구를 즉시 전사에 도입한다."]]
+    errors: [{locus: overview, criterion: fidelity}]
+  - id: s5-premise-changed
+    note: criterion changed in meaning; the decision that depends on it was not updated
+    edits: [["판단 기준: 3개월 안에 되돌릴 수 있어야 한다.", "판단 기준: 1개월 안에 전사 확산이 가능해야 한다."]]
+    errors: [{locus: decision, criterion: concept-consistency}]
+  - id: s6-overview-drops-disagreement
+    note: overview silently drops the open disagreement
+    edits: [["검색 시간이 줄어든다는 근거가 있으나 비용 기준에는 이견이 남아 있다.", "검색 시간이 줄어든다는 근거가 있어 이견은 없다."]]
+    errors: [{locus: overview, criterion: fidelity}, {locus: overview, criterion: counterargument, global: true}]
+  - id: s7-unrecorded-dependency
+    note: rationale contradicts the scope, but no relation links them (only a global review can see it)
+    edits: [["전사 도입 전에 실제 사용량을 확인할 수 있고 되돌리기 쉽다.", "외부 고객 문서까지 검색해야 효과가 크므로 그 범위로 시범한다."]]
+    errors: [{locus: rationale, criterion: concept-consistency, global: true}]
+  - id: s8-negation
+    note: one-word meaning flip in a claim (must not be treated as cosmetic)
+    edits: [["문서를 찾는 데 드는 시간이 줄어든다.", "문서를 찾는 데 드는 시간이 늘어난다."]]
+    errors: [{locus: claim, criterion: claim-evidence}]

@@ -1,0 +1,68 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
+
+# v0.3.0 assessment records (EARL). An assessment is an opinion with its basis, not a verdict:
+# it must name the subject, the criterion, the outcome, who asserted it and why. AI assessments
+# must also carry the model id and an uncertainty note; coverage needs an explicit scope.
+
+<https://example.org/ontology/dds/shapes> sh:declare
+    [ sh:prefix "earl" ; sh:namespace "http://www.w3.org/ns/earl#"^^xsd:anyURI ] .
+
+ddsh:AssessmentShape a sh:NodeShape ;
+    sh:targetClass earl:Assertion ;
+    sh:property ddsh:Assessment-subject , ddsh:Assessment-test , ddsh:Assessment-assertedBy ,
+                ddsh:Assessment-outcome , ddsh:Assessment-info .
+
+ddsh:Assessment-subject a sh:PropertyShape ; sh:path earl:subject ; sh:minCount 1 ; sh:maxCount 1 ; sh:nodeKind sh:IRI ;
+    sh:message "Assessment needs exactly one earl:subject (the document or component IRI)."@en ,
+               "평가 기록에는 earl:subject(문서·컴포넌트 IRI)가 정확히 하나 있어야 한다."@ko .
+ddsh:Assessment-test a sh:PropertyShape ; sh:path earl:test ; sh:minCount 1 ; sh:maxCount 1 ; sh:class skos:Concept ;
+    sh:message "Assessment needs exactly one earl:test: a DDS evaluation criterion (skos:Concept)."@en ,
+               "평가 기록에는 DDS 평가 기준(skos:Concept)인 earl:test가 정확히 하나 있어야 한다."@ko .
+ddsh:Assessment-assertedBy a sh:PropertyShape ; sh:path earl:assertedBy ; sh:minCount 1 ;
+    sh:message "Assessment must say who asserted it (earl:assertedBy)."@en ,
+               "평가 기록에는 평가자(earl:assertedBy)가 있어야 한다."@ko .
+ddsh:Assessment-outcome a sh:PropertyShape ;
+    sh:path ( earl:result earl:outcome ) ; sh:minCount 1 ; sh:maxCount 1 ;
+    sh:in ( earl:passed earl:failed earl:cantTell earl:untested ) ;
+    sh:message "Assessment needs one earl:result with one earl:outcome (passed / failed / cantTell / untested)."@en ,
+               "평가 기록에는 earl:outcome(passed / failed / cantTell / untested) 하나가 있는 earl:result가 필요하다."@ko .
+ddsh:Assessment-info a sh:PropertyShape ;
+    sh:path ( earl:result earl:info ) ; sh:minCount 1 ;
+    sh:message "Assessment needs its basis (earl:result / earl:info)."@en ,
+               "평가 기록에는 근거(earl:result / earl:info)가 있어야 한다."@ko .
+
+ddsh:AIAssessmentShape a sh:NodeShape ;
+    sh:targetClass earl:Assertion ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Non-manual (AI) assessment needs {?missing}."@en ,
+                   "사람이 아닌(AI) 평가 기록에 {?missing}이 필요하다."@ko ;
+        sh:select """
+            SELECT $this ?missing WHERE {
+                FILTER NOT EXISTS { $this earl:mode earl:manual . }
+                { FILTER NOT EXISTS { $this dds:assessorModel ?m . } BIND ("dds:assessorModel" AS ?missing) }
+                UNION
+                { FILTER NOT EXISTS { $this dds:uncertainty ?u . } BIND ("dds:uncertainty" AS ?missing) }
+            }
+        """ ] .
+
+ddsh:CoverageScopeShape a sh:NodeShape ;
+    sh:targetClass earl:Assertion ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Coverage assessment must state its scope / evidence boundary (dds:evaluationScope)."@en ,
+                   "Coverage 평가 기록에는 범위·근거 경계(dds:evaluationScope)가 있어야 한다."@ko ;
+        sh:select """
+            SELECT $this WHERE {
+                $this earl:test ?t . ?t skos:notation ?n . FILTER (STR(?n) = "coverage")
+                FILTER NOT EXISTS { $this dds:evaluationScope ?s . }
+            }
+        """ ] .

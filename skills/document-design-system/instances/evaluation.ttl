@@ -1,0 +1,53 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix criterion: <https://example.org/data/criterion/> .
+
+# Evaluation criteria (ABox, SKOS). Used as earl:test in evaluation results and assessment records.
+# skos:notation is the stable key; dds:dimension groups the report (Structure / Semantic / Presentation).
+# Structure and frame-contract items are decided by SHACL. Semantic items are decided only by a
+# recorded HUMAN assessment (earl:manual); an AI assessment is shown as NeedsReview with its basis.
+
+criterion:scheme a skos:ConceptScheme ; skos:prefLabel "DDS evaluation criteria"@en .
+
+criterion:structure-hierarchy a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "structure-hierarchy" ;
+    dds:dimension "Structure" ; skos:prefLabel "Hierarchy"@en ;
+    skos:definition "Containers, order, reachability, references (SHACL)."@en .
+criterion:structure-depth a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "structure-depth" ;
+    dds:dimension "Structure" ; skos:prefLabel "Depth"@en ;
+    skos:definition "Section depth = level of abstraction; overview links point down (SHACL)."@en .
+criterion:structure-order a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "structure-order" ;
+    dds:dimension "Structure" ; skos:prefLabel "Order"@en ;
+    skos:definition "Premises precede dependents; revisions follow and their dependents are re-reviewed."@en .
+criterion:frame-contract a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "frame-contract" ;
+    dds:dimension "Structure" ; skos:prefLabel "Frame contract"@en ;
+    skos:definition "Required semantics, DesignSystem compatibility, mappings (SHACL)."@en .
+criterion:fidelity a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "fidelity" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Fidelity"@en ;
+    skos:definition "Overviews do not distort the details and sources they condense."@en .
+criterion:coverage a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "coverage" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Coverage"@en ;
+    skos:definition "Main alternatives, evidence and exceptions are included, WITHIN the stated Scope and evidence boundary."@en .
+criterion:counterargument a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "counterargument" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Counterargument"@en ;
+    skos:definition "Counterarguments and open disagreements that affect the judgment are kept and visible."@en .
+criterion:perspective-bias a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "perspective-bias" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Perspective bias"@en ;
+    skos:definition "No stakeholder perspective dominates without reason."@en .
+criterion:traceability a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "traceability" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Traceability"@en ;
+    skos:definition "Claims and decisions link to their grounds (link existence only; sufficiency needs review)."@en .
+criterion:claim-evidence a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "claim-evidence" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Claim-evidence consistency"@en ;
+    skos:definition "The linked evidence or rationale actually supports the claim or decision (sufficiency, not link existence)."@en .
+criterion:concept-consistency a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "concept-consistency" ;
+    dds:dimension "Semantic" ; skos:prefLabel "Concept consistency"@en ;
+    skos:definition "Concepts and criteria defined earlier are used with the same meaning later."@en .
+criterion:presentation-consistency a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "presentation-consistency" ;
+    dds:dimension "Presentation" ; skos:prefLabel "Consistency"@en ;
+    skos:definition "The same meaning is presented the same way throughout."@en .
+criterion:presentation-distinguishability a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "presentation-distinguishability" ;
+    dds:dimension "Presentation" ; skos:prefLabel "Distinguishability"@en ;
+    skos:definition "Different kinds of meaning are presented differently."@en .
+criterion:presentation-predictability a skos:Concept ; skos:inScheme criterion:scheme ; skos:notation "presentation-predictability" ;
+    dds:dimension "Presentation" ; skos:prefLabel "Predictability"@en ;
+    skos:definition "The Frame maps every key deliberation meaning to a repeatable pattern."@en .

@@ -1,0 +1,86 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix resolution: <https://example.org/data/resolution/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-05-deliberation-revision a dds:Document ;
+    skos:prefLabel "«숙의 개정 제목»"@ko ;
+    prov:wasDerivedFrom doc:new-doc-04-independent-critique ;
+    dds:hasComponent <https://example.org/data/component/new-doc-05-deliberation-revision/details>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/overview>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/premises> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:DeliberationRevision-v1 .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-05-deliberation-revision/critique>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/details-h>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/open>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/revised> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/details-h> a dds:Component ;
+    dds:hasContent "개정"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-05-deliberation-revision/open>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/revised> ;
+    dds:hasContent "«무엇이 바뀌었고 무엇이 열려 있는가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-05-deliberation-revision/criterion>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/premises-h>,
+        <https://example.org/data/component/new-doc-05-deliberation-revision/scope> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/scope> a dds:Component ;
+    dds:hasContent "«범위: 포함하는 것과 제외하는 것»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/critique> a dds:Component ;
+    dds:hasContent "«반영할 지적»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Critique ;
+    dds:hasStructure structure:Paragraph ;
+    dds:resolution resolution:deferred ;
+    dds:targets <https://example.org/data/component/new-doc-05-deliberation-revision/criterion> .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/open> a dds:Component ;
+    prov:wasDerivedFrom <https://example.org/data/component/new-doc-05-deliberation-revision/critique> ;
+    dds:hasContent "«아직 합의되지 않은 사항»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:UnresolvedIssue ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/revised> a dds:Component ;
+    prov:wasRevisionOf <https://example.org/data/component/new-doc-05-deliberation-revision/criterion> ;
+    dds:hasContent "«전제 변경: 무엇을 왜 바꾸는가. 후행 영향은 재검토한다»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-05-deliberation-revision/criterion> a dds:Component ;
+    dds:hasContent "«판단 기준»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+

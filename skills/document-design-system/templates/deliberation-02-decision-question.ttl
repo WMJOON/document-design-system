@@ -1,0 +1,82 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix design: <https://example.org/data/design/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+doc:new-doc-02-decision-question a dds:Document ;
+    skos:prefLabel "«결정 질문 제목»"@ko ;
+    prov:wasDerivedFrom doc:new-doc-01-problem-framing ;
+    dds:hasComponent <https://example.org/data/component/new-doc-02-decision-question/details>,
+        <https://example.org/data/component/new-doc-02-decision-question/overview>,
+        <https://example.org/data/component/new-doc-02-decision-question/premises> ;
+    dds:usesDesignSystem design:DeliberationSystem ;
+    dds:usesFrame frame:DecisionQuestion-v1 .
+
+<https://example.org/data/component/new-doc-02-decision-question/constraint-note> a dds:Component ;
+    dds:hasContent "«결정을 묶는 제약이나 가정»"@ko ;
+    dds:hasOrder 4 ;
+    dds:hasSemantic semantic:Assumption ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-02-decision-question/details> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-02-decision-question/details-h>,
+        <https://example.org/data/component/new-doc-02-decision-question/question>,
+        <https://example.org/data/component/new-doc-02-decision-question/required-evidence> ;
+    dds:hasOrder 3 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-02-decision-question/details-h> a dds:Component ;
+    dds:hasContent "결정 질문"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-02-decision-question/overview> a dds:Component ;
+    dds:elaboratedBy <https://example.org/data/component/new-doc-02-decision-question/question> ;
+    dds:hasContent "«무엇을 누가 결정해야 하는가»"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-02-decision-question/premises> a dds:Component ;
+    dds:hasChild <https://example.org/data/component/new-doc-02-decision-question/constraint-note>,
+        <https://example.org/data/component/new-doc-02-decision-question/criterion>,
+        <https://example.org/data/component/new-doc-02-decision-question/premises-h>,
+        <https://example.org/data/component/new-doc-02-decision-question/scope> ;
+    dds:hasOrder 2 ;
+    dds:hasStructure structure:Section .
+
+<https://example.org/data/component/new-doc-02-decision-question/premises-h> a dds:Component ;
+    dds:hasContent "전제"@ko ;
+    dds:hasOrder 1 ;
+    dds:hasStructure structure:Heading .
+
+<https://example.org/data/component/new-doc-02-decision-question/required-evidence> a dds:Component ;
+    dds:hasContent "«판단에 필요한 근거»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Description ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-02-decision-question/criterion> a dds:Component ;
+    dds:hasContent "«판단 기준»"@ko ;
+    dds:hasOrder 3 ;
+    dds:hasSemantic semantic:Criterion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-02-decision-question/question> a dds:Component ;
+    dds:basedOn <https://example.org/data/component/new-doc-02-decision-question/criterion>,
+        <https://example.org/data/component/new-doc-02-decision-question/scope> ;
+    dds:hasContent "«결정 질문»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:DecisionQuestion ;
+    dds:hasStructure structure:Paragraph .
+
+<https://example.org/data/component/new-doc-02-decision-question/scope> a dds:Component ;
+    dds:hasContent "«범위: 포함하는 것과 제외하는 것»"@ko ;
+    dds:hasOrder 2 ;
+    dds:hasSemantic semantic:Scope ;
+    dds:hasStructure structure:Paragraph .
+

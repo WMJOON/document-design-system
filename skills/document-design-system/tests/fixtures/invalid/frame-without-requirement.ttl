@@ -1,0 +1,19 @@
+# INVALID (frame-without-requirement): DocumentFrame has no FrameRequirement.
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
+@prefix structure: <https://example.org/data/structure/> .
+@prefix semantic: <https://example.org/data/semantic/> .
+@prefix presentation: <https://example.org/data/presentation/> .
+@prefix design: <https://example.org/data/design/> .
+@prefix frame: <https://example.org/data/frame/> .
+@prefix criterion: <https://example.org/data/criterion/> .
+@prefix doc: <https://example.org/data/doc/> .
+@prefix component: <https://example.org/data/component/> .
+
+frame:t a dds:DocumentFrame ; skos:prefLabel "Test frame"@en .
+doc:x a dds:Document ; dds:usesDesignSystem design:DeliberationSystem ;
+    dds:hasComponent component:x\/p .
+component:x\/p a dds:Component ; dds:hasStructure structure:Paragraph ; dds:hasOrder 1 ;
+    dds:hasSemantic semantic:Description ; dds:hasContent "본문"@ko .

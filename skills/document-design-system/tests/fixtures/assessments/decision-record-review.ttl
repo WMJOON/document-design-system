@@ -1,0 +1,30 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix earl: <http://www.w3.org/ns/earl#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix criterion: <https://example.org/data/criterion/> .
+@prefix doc: <https://example.org/data/doc/> .
+
+# Fictional assessment records for valid/decision-record.ttl.
+# A human closes Fidelity; an AI gives an opinion on Coverage (shown as NeedsReview, never a verdict);
+# a human claims Traceability passed (kept as Pass because SHACL agrees).
+
+[] a earl:Assertion ;
+    earl:subject doc:search-tool-decision ; earl:test criterion:fidelity ;
+    earl:assertedBy <https://example.org/people/reviewer-a> ; earl:mode earl:manual ;
+    earl:result [ a earl:TestResult ; earl:outcome earl:passed ;
+                  earl:info "Overview matches the decision and the open cost issue."@en ;
+                  dcterms:date "2026-11-18T09:00:00Z" ] .
+
+[] a earl:Assertion ;
+    earl:subject doc:search-tool-decision ; earl:test criterion:coverage ;
+    earl:assertedBy <https://example.org/agents/reviewer-bot> ; earl:mode earl:semiAuto ;
+    dds:assessorModel "example-model-1" ;
+    dds:uncertainty "Could not check alternatives outside the pilot survey."@en ;
+    dds:evaluationScope "Internal wiki and shared drive documents; pilot survey only."@en ;
+    earl:result [ a earl:TestResult ; earl:outcome earl:passed ;
+                  earl:info "Both options from the survey are discussed."@en ] .
+
+[] a earl:Assertion ;
+    earl:subject doc:search-tool-decision ; earl:test criterion:traceability ;
+    earl:assertedBy <https://example.org/people/reviewer-a> ; earl:mode earl:manual ;
+    earl:result [ a earl:TestResult ; earl:outcome earl:passed ; earl:info "Spot-checked links."@en ] .
