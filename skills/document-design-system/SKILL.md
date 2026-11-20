@@ -10,14 +10,19 @@ exactly one Structure, zero or more Semantics, and zero or one Presentation (fal
 DesignSystem's default binding). TBox = `ontology/`, ABox = `instances/` + your files,
 validation = `shapes/` (SHACL Core + SHACL-SPARQL).
 
-Requirements: Python ≥ 3.9, `pip install -r requirements.txt` (rdflib, pyshacl, PyYAML).
+Version: 0.3.1. Requirements: Python ≥ 3.9, `pip install -r requirements.txt` (rdflib, pyshacl, pyoxigraph, PyYAML).
+
+SHACL engine: Core shapes run in pyshacl; SHACL-SPARQL constraints (`sh:sparql`) run in pyoxigraph
+(much faster on document-sized graphs). Set `DDS_SHACL_ENGINE=pyshacl` to run everything in pyshacl.
+Without pyoxigraph installed, validation falls back to pyshacl automatically.
 All commands run from this skill directory.
 
 ## Operations
 
 | Operation | Command | Notes |
 |---|---|---|
-| compose | `python3 scripts/compose.py SPEC.yaml -o doc.ttl` | YAML → ABox; validates afterwards. `--write-ids` persists generated ids |
+| **build** | `python3 scripts/build.py doc.ttl --extra data.ttl -o doc.md` | **Main command.** Source TTL → materialise → SHACL → Markdown in one process. `--emit full.ttl` for debugging |
+| compose (legacy) | `python3 scripts/compose.py SPEC.yaml -o doc.ttl` | YAML → ABox. Kept for compatibility; write source TTL instead |
 | validate | `python3 scripts/validate.py doc.ttl [--json] [--lang ko]` | exit 0 pass / 1 violations / 2 error |
 | render | `python3 scripts/render.py doc.ttl -o doc.md [--no-annotate]` | refuses invalid input unless `--force` |
 | parse | `python3 scripts/parse.py doc.md -o doc.ttl [--design-system X]` | annotated MD → exact graph; plain MD → structural |
@@ -34,9 +39,9 @@ All commands run from this skill directory.
 2. **Pick a DesignSystem.** Read `instances/design-system.ttl` (`PlanningSystem`, `MemoSystem`).
    A new one goes in a separate TTL passed via `--extra`. Never apply a Structure / Semantic /
    Presentation the DesignSystem does not support.
-3. **Write a compose spec.** Start from `templates/planning-document.yaml`. Give every component an
-   explicit, stable `id`. See [references/compose-spec.md](references/compose-spec.md).
-4. **Compose → validate.** Run `compose.py`. A successful Turtle serialisation is NOT validation.
+3. **Write the source TTL** (see "Source TTL" below). Give every component a stable IRI.
+   (Legacy: a YAML compose spec, [references/compose-spec.md](references/compose-spec.md).)
+4. **Build.** Run `build.py`. A successful Turtle serialisation is NOT validation.
    Only a `PASS` from SHACL counts. On failure, read the `[ddsh:…Shape]` code and fix the cause
    (see [references/validation-rules.md](references/validation-rules.md)).
 5. **Render** with `render.py`. Keep annotations (default) when the Markdown may be parsed back.
@@ -54,11 +59,70 @@ All commands run from this skill directory.
 8. Container policy: Section → any child; List → ListItem; Table → TableRow; TableRow → TableCell; everything else → no children. `Document hasComponent` points to root components only.
 9. Validation runs without RDFS/OWL inference on purpose. Domain/range are inference rules, not checks.
 
+## Source TTL (v0.4): the document source
+
+Write documents directly in Turtle. Keep only what a person decides; build derives the rest
+(hasOrder, header rows and cells from the glossary, kinded-section headings) in memory.
+
+```turtle
+doc:v1 a dds:Document ; skos:prefLabel "결제 수단"@ko ;
+    dds:usesDesignSystem design:PlanningSystem ;
+    dds:children ( c:summary c:payment-method ) .                 # order = list order
+c:summary a dds:Component ; dds:hasStructure structure:Paragraph ;
+    dds:hasContent "> 이 문서에서 알 수 있는 것"@ko .
+c:payment-method a dds:Component ; dds:hasStructure structure:Section ;
+    dds:sectionKind design:ConceptSection ; dds:about kw:PaymentMethod ;   # heading from the concept
+    dds:children ( c:payment-method-table ) .
+c:payment-method-table a dds:Component ; dds:hasStructure structure:Table ;
+    dds:tableKind design:ConceptTable ;
+    dds:rows ( kw:Card [ dds:about kw:Deposit ; dds:cells [ design:col-definition "직접 쓴 정의"@ko ] ] ) .
+```
+
+- `dds:children` (Document/Section/List), `dds:items` (List literals), `dds:rows` (typed Table) are rdf:Lists.
+- Component IRIs live under `<base>component/<doc id>/`; derived ids are deterministic (`{table}-r0-c1`).
+- The expanded form (hasChild + hasOrder) is still accepted; do not mix both on one node.
+- `validate.py` / `render.py` expand source files automatically.
+
+## Typed tables and sections (v0.2–v0.3)
+
+Content and presentation stay apart: a component says WHAT it shows (kind, row subjects, explicit
+cell values); WHICH columns are shown, their order and their header text are presentation, defined
+once outside documents.
+
+- **Column**: which property of the row subject fills the cell (`dds:valueProperty`). Header text =
+  Column `skos:prefLabel`, renamed only DesignSystem-wide (`dds:hasColumnLabel`). Never per table.
+- **TableKind**: rowClass + all allowed Columns in a fixed order. Default `design:ConceptTable`
+  (rowClass `skos:Concept`): label | code | definition | description | example | source.
+- **TableView**: a named subset of a kind's columns, in the kind's order (`dds:viewColumns`).
+  DesignSystem default per kind via `dds:hasDefaultView`; a table may pick a named view with `view:`.
+- **SectionKind**: heading pattern + ordered Slots. Default `design:ConceptSection`, one per class:
+  `## {label}` → description Paragraph (only when given) → ConceptTable (rows = members) → notes List (only when given).
+
+```yaml
+- id: payment-method
+  structure: Section
+  kind: ConceptSection
+  about: payment_method              # concept the section is about (notation, curie or IRI)
+  table:
+    view: InputView                  # optional named TableView; else the DesignSystem default
+    rows:
+      - card                         # row subject
+      - {about: deposit, cells: {definition: 직접 쓴 정의}}   # explicit cell value
+  notes: [주석 한 줄]
+```
+
+- `columns:` / `headers:` on a component are rejected.
+- Pass data, kinds and views with `--extra` to compose / validate / render.
+- SHACL checks: one header row first, equal cell counts, every cell has a column, row subjects typed
+  with the rowClass, no untyped tables when `dds:requiresTypedTables true`, section slots present,
+  in order, with the right structure and table kind.
+
 ## Key files
 
 - `ontology/*.ttl`: TBox (core, structure, semantic, presentation, relations). Design notes: [references/ontology-design.md](references/ontology-design.md)
 - `shapes/*.shacl.ttl`: document/DS shapes, component shapes, hierarchy and DS-support SPARQL rules
 - `instances/design-system.ttl`: reusable type/style individuals and the default DesignSystems
+- `instances/table-kinds.ttl`, `ontology/table.ttl`, `shapes/table.shacl.ttl`: typed tables (Column, TableKind, ColumnLabel)
 - `instances/example-document.ttl`: example planning document (ABox)
 - `config/presentation-markdown.yaml`: Presentation token → Markdown rule (`wrap`, `prefix`)
 - `templates/planning-document.{yaml,md}`: compose spec and its rendered output

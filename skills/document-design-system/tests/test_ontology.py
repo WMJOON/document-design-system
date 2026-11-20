@@ -5,7 +5,8 @@ from rdflib.namespace import OWL, RDF, RDFS
 
 from dds_lib.graph import DDS, load_data, load_shapes, load_tbox, validate_graph
 
-TOP = ["Document", "DesignSystem", "Component", "Structure", "Semantic", "Presentation", "PresentationBinding"]
+TOP = ["Document", "DesignSystem", "Component", "Structure", "Semantic", "Presentation", "PresentationBinding",
+       "Column", "TableKind", "ColumnUse", "ColumnLabel", "SectionKind", "Slot", "TableView"]  # v0.2 typed tables (user-approved)
 SUB = {
     "Structure": ["Section", "Heading", "Paragraph", "List", "ListItem", "Table", "TableRow", "TableCell"],
     "Semantic": ["Requirement", "Policy", "Constraint", "Decision", "Evidence", "Assumption", "Description"],

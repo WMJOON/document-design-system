@@ -1,0 +1,99 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+# Typed tables (v0.2) ---------------------------------------------------------
+# A Column says WHICH value fills a cell (valueProperty of the row's subject) and is reused
+# across tables. A TableKind is an ordered set of Columns. The header TEXT is presentation:
+# Column skos:prefLabel is the default; a DesignSystem ColumnLabel binding overrides it for a
+# whole design system, and a ColumnLabel on one Table overrides it for that table only.
+
+dds:Column a owl:Class ;
+    rdfs:label "Column"@en ;
+    rdfs:comment "Reusable column definition: which property of the row subject fills the cell."@en .
+dds:TableKind a owl:Class ;
+    rdfs:label "TableKind"@en ;
+    rdfs:comment "Reusable table type: an ordered list of Columns (via ColumnUse)."@en .
+dds:ColumnUse a owl:Class ;
+    rdfs:label "ColumnUse"@en ;
+    rdfs:comment "Position of one Column inside one TableKind."@en .
+dds:ColumnLabel a owl:Class ;
+    rdfs:label "ColumnLabel"@en ;
+    rdfs:comment "Header text for one Column, scoped to a DesignSystem."@en .
+
+# Column
+dds:columnKey a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Column ; rdfs:range xsd:string ;
+    rdfs:comment "Short key used in compose specs (e.g. label, code, definition)."@en .
+dds:valueProperty a owl:ObjectProperty ; rdfs:domain dds:Column ; rdfs:range rdf:Property ;
+    rdfs:comment "Property read from the row subject. Several = first one that has a value. None = cell given in the spec."@en .
+dds:valueKind a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Column ; rdfs:range xsd:string ;
+    rdfs:comment "text (default) | label (IRI value -> its prefLabel) | notation (IRI value -> its notation)."@en .
+
+# TableKind
+dds:hasColumnUse a owl:ObjectProperty ; rdfs:domain dds:TableKind ; rdfs:range dds:ColumnUse .
+dds:column a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range dds:Column ;
+    rdfs:comment "On ColumnUse: the Column at this position. On TableCell: the Column the cell belongs to."@en .
+dds:columnOrder a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:ColumnUse ; rdfs:range xsd:positiveInteger ;
+    rdfs:comment "Position of the Column in its TableKind (1..n). Separate from dds:hasOrder, which marks components."@en .
+
+# Header labels (presentation; never on a component)
+dds:hasColumnLabel a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:ColumnLabel ;
+    rdfs:comment "DesignSystem-wide header text for a Column. Header text is never set per component."@en .
+dds:forColumn a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:ColumnLabel ; rdfs:range dds:Column .
+# ColumnLabel text uses skos:prefLabel.
+
+# Table views (presentation): which columns are shown, in which order
+dds:TableView a owl:Class ;
+    rdfs:label "TableView"@en ;
+    rdfs:comment "Presentation of a TableKind: the shown columns in order. Defined outside documents."@en .
+dds:forTableKind a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:TableView ; rdfs:range dds:TableKind .
+dds:viewColumns a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:TableView ; rdfs:range xsd:string ;
+    rdfs:comment "Space-separated column keys, a subsequence of the kind's column order."@en .
+dds:hasDefaultView a owl:ObjectProperty ; rdfs:domain dds:DesignSystem ; rdfs:range dds:TableView ;
+    rdfs:comment "Default view per TableKind for documents using this DesignSystem."@en .
+dds:tableView a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range dds:TableView ;
+    rdfs:comment "On a Table component: the view used (named in the spec or the DesignSystem default)."@en .
+
+# Components
+dds:tableKind a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range dds:TableKind ;
+    rdfs:comment "On a Table component: the TableKind it follows."@en .
+dds:about a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:comment "On a TableRow of a typed table: the resource the row describes (e.g. a skos:Concept)."@en .
+dds:rowClass a owl:ObjectProperty ; rdfs:domain dds:TableKind ; rdfs:range rdfs:Class ;
+    rdfs:comment "Class every row subject (dds:about) must be an instance of (checked without inference)."@en .
+dds:requiresTypedTables a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:DesignSystem ; rdfs:range xsd:boolean ;
+    rdfs:comment "true: every Table in documents using this DesignSystem must have a dds:tableKind."@en .
+dds:headerRow a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:boolean ;
+    rdfs:comment "On a TableRow: true for the generated header row of a typed table."@en .
+
+# Section kinds (v0.3) ---------------------------------------------------------
+# A SectionKind fixes a Section's inner composition: a heading pattern and ordered Slots
+# (e.g. ConceptSection: Heading "{label} 용어 정의" -> description Paragraph -> ConceptTable -> notes List).
+# A Section with dds:sectionKind is about one resource (dds:about); compose fills the heading
+# and, when not given, the description from that resource.
+
+dds:SectionKind a owl:Class ;
+    rdfs:label "SectionKind"@en ;
+    rdfs:comment "Reusable section composition: heading pattern + ordered slots."@en .
+dds:Slot a owl:Class ;
+    rdfs:label "Slot"@en ;
+    rdfs:comment "One position inside a SectionKind (structure, optional table kind, cardinality)."@en .
+
+dds:sectionKind a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range dds:SectionKind ;
+    rdfs:comment "On a Section component: the SectionKind it follows."@en .
+dds:headingPattern a owl:DatatypeProperty ; rdfs:domain dds:SectionKind ; rdfs:range rdf:langString ;
+    rdfs:comment "Heading text with {label} replaced by the about-resource's skos:prefLabel."@en .
+dds:hasSlot a owl:ObjectProperty ; rdfs:domain dds:SectionKind ; rdfs:range dds:Slot .
+dds:slotKey a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range xsd:string .
+dds:slotOrder a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range xsd:positiveInteger .
+dds:slotStructure a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range dds:Structure .
+dds:slotTableKind a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range dds:TableKind .
+dds:slotRequired a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range xsd:boolean .
+dds:slotMultiple a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:domain dds:Slot ; rdfs:range xsd:boolean .
+dds:fillProperty a owl:ObjectProperty ; rdfs:domain dds:Slot ; rdfs:range rdf:Property ;
+    rdfs:comment "Paragraph slot: property of the about-resource used when the spec gives no text."@en .
+dds:fillsSlot a owl:DatatypeProperty , owl:FunctionalProperty ; rdfs:range xsd:string ;
+    rdfs:comment "On a child of a kinded Section: the slotKey of the Slot it fills."@en .

@@ -34,8 +34,12 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
 
     spec = yaml.safe_load(a.spec.read_text(encoding="utf-8"))
+    extra = Graph()
+    for p in a.extra:
+        extra.parse(str(p), format="turtle")
+    vocab = merge(extra)  # defaults + TBox + extra: table kinds, column labels, row subjects
     try:
-        g, doc, generated = compose(spec, base=a.base, lang=a.lang)
+        g, doc, generated = compose(spec, base=a.base, lang=a.lang, vocab=vocab)
     except ComposeError as e:
         print(f"compose error: {e}", file=sys.stderr)
         return 2
@@ -57,9 +61,6 @@ def main(argv=None) -> int:
 
     if a.no_validate:
         return 0
-    extra = Graph()
-    for p in a.extra:
-        extra.parse(str(p), format="turtle")
     report = validate_graph(merge(g, extra))
     if a.json:
         print(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), file=sys.stderr)

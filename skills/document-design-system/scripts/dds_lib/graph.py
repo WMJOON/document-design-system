@@ -20,6 +20,7 @@ SH = Namespace("http://www.w3.org/ns/shacl#")
 
 DEFAULT_BASE = "https://example.org/data/"
 DEFAULT_DESIGN_SYSTEMS = INSTANCES_DIR / "design-system.ttl"
+DEFAULT_TABLE_KINDS = INSTANCES_DIR / "table-kinds.ttl"
 
 
 class DataNS:
@@ -79,7 +80,7 @@ def load_data(paths: Iterable[Path], with_defaults: bool = True, with_tbox: bool
     if with_tbox:
         _parse_all(sorted(ONTOLOGY_DIR.glob("*.ttl")), g)
     if with_defaults:
-        _parse_all([DEFAULT_DESIGN_SYSTEMS], g)
+        _parse_all([DEFAULT_DESIGN_SYSTEMS, DEFAULT_TABLE_KINDS], g)
     _parse_all([Path(p) for p in paths], g)
     return g
 
@@ -89,6 +90,8 @@ def merge(*graphs: Graph, with_defaults: bool = True, with_tbox: bool = True,
     """Merge in-memory graphs with TBox + default DesignSystems."""
     g = load_data([], with_defaults=with_defaults, with_tbox=with_tbox, ns=ns)
     for x in graphs:
+        for p, n in x.namespaces():  # keep prefixes so curies (e.g. k:Card) resolve
+            g.bind(p, n, override=False)
         for t in x:
             g.add(t)
     return g
@@ -168,9 +171,36 @@ def validate_graph(data: Graph, shapes: Optional[Graph] = None, lang: str = "en"
     usesDesignSystem target would become a DesignSystem). The TBox is merged into
     the data graph instead, so sh:class follows rdfs:subClassOf natively.
     """
+    import os
     from pyshacl import validate
 
     shapes = shapes if shapes is not None else load_shapes()
+    # Fast path (default): Core shapes with pyshacl, sh:sparql constraints with pyoxigraph.
+    # DDS_SHACL_ENGINE=pyshacl runs everything through pyshacl as before.
+    fast = os.environ.get("DDS_SHACL_ENGINE", "oxigraph") != "pyshacl"
+    if fast:
+        try:
+            import pyoxigraph  # noqa: F401
+        except ImportError:
+            fast = False
+    extra: List[Violation] = []
+    if fast:
+        from .oxshacl import run_sparql_constraints, split_shapes
+        core, constraints = split_shapes(shapes)
+        aux = Graph()
+        aux.namespace_manager = data.namespace_manager
+        bind_prefixes(aux)
+        aux.bind("ddsh", DDSH)
+        for shape, focus, msgs, sev, value in run_sparql_constraints(data, constraints):
+            extra.append(Violation(
+                focus=_short(aux, focus or None),
+                shape=_short(aux, shape),
+                message=_pick_message(msgs, lang),
+                path=None,
+                value=_short(aux, value or None),
+                severity=str(sev).split("#")[-1],
+            ))
+        shapes = core
     conforms, results, _text = validate(
         data_graph=data, shacl_graph=shapes, inference="none",
         abort_on_first=False, allow_warnings=False, meta_shacl=False, advanced=True,
@@ -192,8 +222,10 @@ def validate_graph(data: Graph, shapes: Optional[Graph] = None, lang: str = "en"
             value=_short(results, results.value(r, SH.value)),
             severity=_short(results, results.value(r, SH.resultSeverity)).split(":")[-1].split("#")[-1],
         ))
+    out.extend(extra)
     out.sort(key=lambda v: (v.shape or "", v.focus or "", v.value or ""))
-    return Report(conforms=bool(conforms), violations=out)
+    conforms = bool(conforms) and not any(v.severity == "Violation" for v in extra)
+    return Report(conforms=conforms, violations=out)
 
 
 def format_report(report: Report) -> str:

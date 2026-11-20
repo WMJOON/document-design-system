@@ -1,0 +1,16 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+# Source (authoring) form, v0.4. Documents are written in TTL with these list properties;
+# scripts/build.py materialises hasChild/hasOrder, header rows, cells and section headings in memory.
+
+dds:children a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range rdf:List ;
+    rdfs:comment "Ordered children (rdf:List of components) of a Document, Section or List. Replaces hasChild/hasComponent + hasOrder in source files."@en .
+dds:items a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range rdf:List ;
+    rdfs:comment "On a List component: items as an rdf:List of literals."@en .
+dds:rows a owl:ObjectProperty , owl:FunctionalProperty ; rdfs:range rdf:List ;
+    rdfs:comment "On a Table: typed = rdf:List of row subjects (IRI) or [ dds:about X ; dds:cells [ <column> literal ] ]; untyped = rdf:List of rdf:Lists of literals (first row = header)."@en .
+dds:cells a owl:ObjectProperty , owl:FunctionalProperty ;
+    rdfs:comment "On a source row node: explicit cell values keyed by Column IRI."@en .

@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from rdflib import URIRef  # noqa: E402
 
 from dds_lib.graph import format_report, load_data, validate_graph  # noqa: E402
+from dds_lib.materialize import expand_in_place  # noqa: E402
 from dds_lib.markdown import render  # noqa: E402
 from dds_lib.model import documents  # noqa: E402
 
@@ -33,6 +34,8 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
 
     g = load_data(a.files)
+
+    g = expand_in_place(g)  # source form (dds:children / dds:rows) -> full graph
     report = validate_graph(g)
     if not report.conforms:
         print(format_report(report), file=sys.stderr)

@@ -1,0 +1,45 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix design: <https://example.org/data/design/> .
+
+# Default reusable columns and table kinds (v0.2). Projects add their own in a TTL passed with --extra.
+# Header text: Column skos:prefLabel (default) < DesignSystem ColumnLabel < per-table `headers:` in the spec.
+
+design:col-label a dds:Column ; dds:columnKey "label" ; dds:valueProperty skos:prefLabel ;
+    skos:prefLabel "Concept"@en , "개념"@ko .
+design:col-code a dds:Column ; dds:columnKey "code" ; dds:valueProperty skos:notation ;
+    skos:prefLabel "Code"@en , "코드"@ko .
+design:col-definition a dds:Column ; dds:columnKey "definition" ; dds:valueProperty skos:definition ;
+    skos:prefLabel "Definition"@en , "정의"@ko .
+design:col-example a dds:Column ; dds:columnKey "example" ; dds:valueProperty skos:example ;
+    skos:prefLabel "Example"@en , "예시"@ko .
+design:col-description a dds:Column ; dds:columnKey "description" ; dds:valueProperty dcterms:description , skos:scopeNote ;
+    skos:prefLabel "Description"@en , "설명"@ko .
+design:col-source a dds:Column ; dds:columnKey "source" ; dds:valueProperty dcterms:source ;
+    skos:prefLabel "Source"@en , "근거"@ko .
+
+# Concept table: one row per skos:Concept
+design:ConceptTable a dds:TableKind ;
+    skos:prefLabel "Concept table"@en , "개념 표"@ko ;
+    dds:rowClass skos:Concept ;
+    dds:hasColumnUse
+        [ a dds:ColumnUse ; dds:column design:col-label ; dds:columnOrder 1 ] ,
+        [ a dds:ColumnUse ; dds:column design:col-code ; dds:columnOrder 2 ] ,
+        [ a dds:ColumnUse ; dds:column design:col-definition ; dds:columnOrder 3 ] ,
+        [ a dds:ColumnUse ; dds:column design:col-description ; dds:columnOrder 4 ] ,
+        [ a dds:ColumnUse ; dds:column design:col-example ; dds:columnOrder 5 ] ,
+        [ a dds:ColumnUse ; dds:column design:col-source ; dds:columnOrder 6 ] .
+
+# Concept section (v0.3): ## {label} / description (optional) / concept table / notes (optional)
+# One section per class: `about` is the class concept, table rows are its members.
+design:ConceptSection a dds:SectionKind ;
+    skos:prefLabel "Concept section"@en , "개념 절"@ko ;
+    dds:headingPattern "{label}"@ko , "{label}"@en ;
+    dds:hasSlot
+        [ a dds:Slot ; dds:slotKey "heading" ; dds:slotOrder 1 ; dds:slotStructure <https://example.org/data/structure/Heading> ; dds:slotRequired true ] ,
+        [ a dds:Slot ; dds:slotKey "description" ; dds:slotOrder 2 ; dds:slotStructure <https://example.org/data/structure/Paragraph> ;
+          dds:slotRequired false ] ,
+        [ a dds:Slot ; dds:slotKey "table" ; dds:slotOrder 3 ; dds:slotStructure <https://example.org/data/structure/Table> ;
+          dds:slotTableKind design:ConceptTable ; dds:slotRequired true ] ,
+        [ a dds:Slot ; dds:slotKey "notes" ; dds:slotOrder 4 ; dds:slotStructure <https://example.org/data/structure/List> ; dds:slotRequired false ] .

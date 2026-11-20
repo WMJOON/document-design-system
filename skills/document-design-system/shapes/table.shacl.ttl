@@ -1,0 +1,143 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Typed tables (v0.2). Prefixes come from <https://example.org/ontology/dds/shapes> (hierarchy.shacl.ttl).
+
+ddsh:TableKindShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:property [
+        sh:path dds:tableKind ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:TableKind ;
+        sh:message "tableKind must point to exactly one dds:TableKind (load it with --extra)."@en ,
+                   "tableKind는 dds:TableKind 하나를 가리켜야 한다(--extra로 정의 파일을 함께 넘길 것)."@ko ] .
+
+ddsh:TableKindColumnsShape a sh:NodeShape ;
+    sh:targetClass dds:TableKind ;
+    sh:property [
+        sh:path dds:hasColumnUse ; sh:minCount 1 ;
+        sh:message "TableKind must have at least one ColumnUse."@en ,
+                   "TableKind는 ColumnUse를 하나 이상 가져야 한다."@ko ] .
+
+ddsh:ColumnUseShape a sh:NodeShape ;
+    sh:targetClass dds:ColumnUse ;
+    sh:property [ sh:path dds:column ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Column ;
+        sh:message "ColumnUse must reference exactly one dds:Column."@en , "ColumnUse는 dds:Column 하나를 가리켜야 한다."@ko ] ,
+      [ sh:path dds:columnOrder ; sh:minCount 1 ; sh:maxCount 1 ; sh:minInclusive 1 ;
+        sh:message "ColumnUse must have exactly one columnOrder (>= 1)."@en , "ColumnUse는 columnOrder(1 이상)를 정확히 하나 가져야 한다."@ko ] .
+
+ddsh:ColumnShape a sh:NodeShape ;
+    sh:targetClass dds:Column ;
+    sh:property [ sh:path dds:columnKey ; sh:minCount 1 ; sh:maxCount 1 ; sh:datatype xsd:string ;
+        sh:message "Column must have exactly one columnKey (xsd:string)."@en , "Column은 columnKey(문자열)를 정확히 하나 가져야 한다."@ko ] ,
+      [ sh:path dds:valueKind ; sh:maxCount 1 ; sh:in ( "text" "label" "notation" ) ;
+        sh:message "valueKind must be text, label or notation."@en , "valueKind는 text, label, notation 중 하나여야 한다."@ko ] .
+
+ddsh:ColumnLabelShape a sh:NodeShape ;
+    sh:targetClass dds:ColumnLabel ;
+    sh:property [ sh:path dds:forColumn ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:Column ;
+        sh:message "ColumnLabel must reference exactly one dds:Column."@en , "ColumnLabel은 dds:Column 하나를 가리켜야 한다."@ko ] ,
+      [ sh:path skos:prefLabel ; sh:minCount 1 ;
+        sh:message "ColumnLabel needs a skos:prefLabel (the header text)."@en , "ColumnLabel에는 머리 문구(skos:prefLabel)가 있어야 한다."@ko ] .
+
+ddsh:TypedTableHeaderShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Typed table {$this} must have exactly one header row (dds:headerRow true) and it must be first (hasOrder 1)."@en ,
+                   "종류가 있는 표 {$this}는 머리 행(dds:headerRow true)을 정확히 하나, 맨 앞(hasOrder 1)에 가져야 한다."@ko ;
+        sh:select """
+            SELECT $this WHERE {
+                {
+                    SELECT $this (COUNT(?h) AS ?n) WHERE {
+                        $this dds:tableKind ?k .
+                        OPTIONAL { $this dds:hasChild ?h . ?h dds:headerRow true . }
+                    } GROUP BY $this
+                }
+                FILTER (?n != 1 || NOT EXISTS { $this dds:hasChild ?h1 . ?h1 dds:headerRow true ; dds:hasOrder 1 . })
+            }
+        """ ] .
+
+ddsh:TypedTableCellCountShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Row {?row} of typed table {$this} has {?cells} cell(s); its header row has {?cols}."@en ,
+                   "종류가 있는 표 {$this}의 행 {?row}에 셀이 {?cells}개다. 머리 행은 {?cols}개다."@ko ;
+        sh:select """
+            SELECT $this ?row ?cells ?cols WHERE {
+                { SELECT $this ?row (COUNT(DISTINCT ?c) AS ?cells) WHERE {
+                    $this dds:tableKind ?k0 ; dds:hasChild ?row . ?row dds:hasChild ?c } GROUP BY $this ?row }
+                { SELECT $this (COUNT(DISTINCT ?hc) AS ?cols) WHERE {
+                    $this dds:tableKind ?k ; dds:hasChild ?h . ?h dds:headerRow true ; dds:hasChild ?hc } GROUP BY $this }
+                FILTER (?cells != ?cols)
+            }
+        """ ] .
+
+ddsh:TypedTableRowClassShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Row {?row} of typed table {$this} is about {?s}, which is not typed {?cls} (the kind's rowClass)."@en ,
+                   "종류가 있는 표 {$this}의 행 {?row}이 가리키는 {?s}는 표 종류의 행 클래스 {?cls} 타입이 아니다."@ko ;
+        sh:select """
+            SELECT $this ?row ?s ?cls WHERE {
+                $this dds:tableKind ?k ; dds:hasChild ?row .
+                ?k dds:rowClass ?cls .
+                ?row dds:about ?s .
+                FILTER NOT EXISTS { ?s rdf:type ?cls }
+            }
+        """ ] .
+
+ddsh:TypedTableRowAboutShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Row {?row} of typed table {$this} has no dds:about, but the kind declares a rowClass."@en ,
+                   "행 클래스가 있는 표 {$this}의 행 {?row}에 dds:about(가리키는 객체)이 없다."@ko ;
+        sh:select """
+            SELECT $this ?row WHERE {
+                $this dds:tableKind ?k ; dds:hasChild ?row .
+                ?k dds:rowClass ?cls .
+                FILTER NOT EXISTS { ?row dds:headerRow true }
+                FILTER NOT EXISTS { ?row dds:about ?s }
+            }
+        """ ] .
+
+ddsh:RequireTypedTablesShape a sh:NodeShape ;
+    sh:targetClass dds:Document ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Table {?t} has no dds:tableKind, but the DesignSystem requires typed tables."@en ,
+                   "디자인 시스템이 표 종류를 요구하는데 표 {?t}에 dds:tableKind가 없다."@ko ;
+        sh:select """
+            SELECT $this ?t WHERE {
+                $this dds:usesDesignSystem ?ds . ?ds dds:requiresTypedTables true .
+                $this dds:hasComponent/dds:hasChild* ?t .
+                ?t dds:hasStructure ?st . ?st a/rdfs:subClassOf* dds:Table .
+                FILTER NOT EXISTS { ?t dds:tableKind ?k }
+            }
+        """ ] .
+
+ddsh:TypedTableCellColumnShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:tableKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Cell {?cell} of typed table {$this} has no dds:column."@en ,
+                   "종류가 있는 표 {$this}의 셀 {?cell}에 dds:column이 없다."@ko ;
+        sh:select """
+            SELECT $this ?cell WHERE {
+                $this dds:tableKind ?k ; dds:hasChild/dds:hasChild ?cell .
+                FILTER NOT EXISTS { ?cell dds:column ?col }
+            }
+        """ ] .

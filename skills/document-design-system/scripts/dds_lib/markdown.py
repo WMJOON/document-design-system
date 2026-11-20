@@ -117,6 +117,24 @@ class _Ctx:
         c = content_of(g, comp)
         if c is not None and getattr(c, "language", None) != self.lang:
             m["lang"] = c.language
+        # typed tables (v0.2): keep kind / row subject / cell column / header overrides for round trip
+        tk = g.value(comp, DDS.tableKind)
+        if tk is not None:
+            m["kind"] = self.compact(tk, self.ns.design)
+            tv = g.value(comp, DDS.tableView)
+            if tv is not None:
+                m["view"] = self.compact(tv, self.ns.design)
+        sk = g.value(comp, DDS.sectionKind)
+        if sk is not None:
+            m["skind"] = self.compact(sk, self.ns.design)
+        if g.value(comp, DDS.fillsSlot) is not None:
+            m["slot"] = str(g.value(comp, DDS.fillsSlot))
+        if g.value(comp, DDS.about) is not None:
+            m["about"] = str(g.value(comp, DDS.about))
+        if g.value(comp, DDS.headerRow) is not None:
+            m["hdr"] = bool(g.value(comp, DDS.headerRow).toPython())
+        if g.value(comp, DDS.column) is not None:
+            m["col"] = str(g.value(comp, DDS.column))
         return m
 
     def text(self, comp: URIRef) -> str:
@@ -228,6 +246,20 @@ class _Builder:
             g.add((iri, DDS.hasPresentation, resolve(m["p"], ns.presentation, ns)))
         if "ordered" in m:
             g.add((iri, DDS.ordered, Literal(bool(m["ordered"]))))
+        if m.get("kind"):
+            g.add((iri, DDS.tableKind, resolve(m["kind"], ns.design, ns)))
+            if m.get("view"):
+                g.add((iri, DDS.tableView, resolve(m["view"], ns.design, ns)))
+        if m.get("skind"):
+            g.add((iri, DDS.sectionKind, resolve(m["skind"], ns.design, ns)))
+        if m.get("slot"):
+            g.add((iri, DDS.fillsSlot, Literal(m["slot"])))
+        if m.get("about"):
+            g.add((iri, DDS.about, URIRef(m["about"])))
+        if "hdr" in m:
+            g.add((iri, DDS.headerRow, Literal(bool(m["hdr"]))))
+        if m.get("col"):
+            g.add((iri, DDS.column, URIRef(m["col"])))
         owner = parent if parent is not None else self.doc
         n = self.order.get(owner, 0) + 1
         self.order[owner] = n

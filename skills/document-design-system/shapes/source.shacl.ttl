@@ -1,0 +1,20 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Source-form checks (v0.4). Prefixes come from <https://example.org/ontology/dds/shapes>.
+
+ddsh:SourceChildrenExclusiveShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:children ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Node {$this} uses dds:children and also hasChild/hasComponent outside that list."@en ,
+                   "노드 {$this}가 dds:children과 그 목록 밖의 hasChild/hasComponent를 함께 쓴다."@ko ;
+        sh:select """
+            SELECT $this ?c WHERE {
+                $this dds:children ?l .
+                { $this dds:hasChild ?c } UNION { $this dds:hasComponent ?c }
+                FILTER NOT EXISTS { ?l rdf:rest*/rdf:first ?c }
+            }
+        """ ] .

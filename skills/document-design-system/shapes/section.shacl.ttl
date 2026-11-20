@@ -1,0 +1,97 @@
+@prefix dds: <https://example.org/ontology/dds#> .
+@prefix ddsh: <https://example.org/ontology/dds/shapes#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+# Kinded sections (v0.3). Prefixes come from <https://example.org/ontology/dds/shapes>.
+
+ddsh:SectionKindRefShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:property [ sh:path dds:sectionKind ; sh:minCount 1 ; sh:maxCount 1 ; sh:class dds:SectionKind ;
+        sh:message "sectionKind must point to exactly one dds:SectionKind (load it with --extra)."@en ,
+                   "sectionKind는 dds:SectionKind 하나를 가리켜야 한다(--extra로 정의를 함께 넘길 것)."@ko ] ,
+      [ sh:path dds:about ; sh:minCount 1 ; sh:maxCount 1 ;
+        sh:message "A kinded Section must be about exactly one resource (dds:about)."@en ,
+                   "절 유형이 있는 Section은 가리키는 객체(dds:about)가 정확히 하나여야 한다."@ko ] .
+
+ddsh:SectionSlotShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Child {?c} of section {$this} does not fill a slot of its section kind, or its structure differs from the slot."@en ,
+                   "절 {$this}의 하위 {?c}가 절 유형의 슬롯에 해당하지 않거나 슬롯과 구조가 다르다."@ko ;
+        sh:select """
+            SELECT $this ?c WHERE {
+                $this dds:sectionKind ?k ; dds:hasChild ?c .
+                FILTER NOT EXISTS {
+                    ?c dds:fillsSlot ?key ; dds:hasStructure ?st .
+                    ?k dds:hasSlot ?s . ?s dds:slotKey ?sk ; dds:slotStructure ?st .
+                    FILTER (str(?sk) = str(?key))
+                }
+            }
+        """ ] .
+
+ddsh:SectionRequiredSlotShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Section {$this} is missing required slot '{?sk}'."@en ,
+                   "절 {$this}에 필수 슬롯 '{?sk}'가 없다."@ko ;
+        sh:select """
+            SELECT $this ?sk WHERE {
+                $this dds:sectionKind ?k . ?k dds:hasSlot ?s . ?s dds:slotRequired true ; dds:slotKey ?sk .
+                FILTER NOT EXISTS { $this dds:hasChild ?c . ?c dds:fillsSlot ?x . FILTER (str(?x) = str(?sk)) }
+            }
+        """ ] .
+
+ddsh:SectionSlotOrderShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "In section {$this}, slot '{?ka}' comes before '{?kb}' against the section kind's slot order."@en ,
+                   "절 {$this}에서 슬롯 '{?ka}'가 '{?kb}'보다 앞에 있어 절 유형의 슬롯 순서와 어긋난다."@ko ;
+        sh:select """
+            SELECT $this ?ka ?kb WHERE {
+                $this dds:sectionKind ?k ; dds:hasChild ?a , ?b .
+                ?a dds:fillsSlot ?ka ; dds:hasOrder ?oa . ?b dds:fillsSlot ?kb ; dds:hasOrder ?ob .
+                FILTER (?oa < ?ob)
+                ?k dds:hasSlot ?sa , ?sb .
+                ?sa dds:slotKey ?x ; dds:slotOrder ?pa . FILTER (str(?x) = str(?ka))
+                ?sb dds:slotKey ?y ; dds:slotOrder ?pb . FILTER (str(?y) = str(?kb))
+                FILTER (?pa > ?pb)
+            }
+        """ ] .
+
+ddsh:SectionSlotSingleShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Section {$this} fills single slot '{?sk}' more than once."@en ,
+                   "절 {$this}에서 하나만 허용하는 슬롯 '{?sk}'가 여러 번 쓰였다."@ko ;
+        sh:select """
+            SELECT $this ?sk WHERE {
+                $this dds:sectionKind ?k . ?k dds:hasSlot ?s . ?s dds:slotKey ?sk .
+                FILTER NOT EXISTS { ?s dds:slotMultiple true }
+                $this dds:hasChild ?c1 , ?c2 . FILTER (?c1 != ?c2)
+                ?c1 dds:fillsSlot ?x1 . ?c2 dds:fillsSlot ?x2 .
+                FILTER (str(?x1) = str(?sk) && str(?x2) = str(?sk))
+            }
+        """ ] .
+
+ddsh:SectionSlotTableKindShape a sh:NodeShape ;
+    sh:targetSubjectsOf dds:sectionKind ;
+    sh:sparql [
+        a sh:SPARQLConstraint ;
+        sh:prefixes <https://example.org/ontology/dds/shapes> ;
+        sh:message "Table {?c} in section {$this} must follow table kind {?tk} required by its slot."@en ,
+                   "절 {$this}의 표 {?c}는 슬롯이 정한 표 유형 {?tk}를 따라야 한다."@ko ;
+        sh:select """
+            SELECT $this ?c ?tk WHERE {
+                $this dds:sectionKind ?k ; dds:hasChild ?c . ?c dds:fillsSlot ?key .
+                ?k dds:hasSlot ?s . ?s dds:slotKey ?sk ; dds:slotTableKind ?tk . FILTER (str(?sk) = str(?key))
+                FILTER NOT EXISTS { ?c dds:tableKind ?tk }
+            }
+        """ ] .
