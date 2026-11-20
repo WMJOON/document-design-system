@@ -9,7 +9,7 @@
 
 <https://example.org/ontology/dds> a owl:Ontology ;
     rdfs:label "DDS — Document Design System"@en ;
-    owl:versionInfo "0.3.0" .
+    owl:versionInfo "0.3.1" .
 
 dds:Document a owl:Class ;
     rdfs:label "Document"@en ;

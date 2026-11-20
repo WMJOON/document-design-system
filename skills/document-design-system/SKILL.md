@@ -10,8 +10,12 @@ Each Component has one Structure, 0..n Semantics and 0..1 Presentation. Delibera
 pin one versioned **DocumentFrame** (which meanings they must contain). Turtle (TTL) is canonical;
 Markdown is a rendering that round-trips through `<!-- dds … -->` annotations.
 
-Setup: Python ≥ 3.9, `pip install -r requirements.txt` (rdflib, pyshacl, PyYAML). Run commands from
+Setup: Python ≥ 3.9, `pip install -r requirements.txt` (rdflib, pyshacl, pyoxigraph, PyYAML). Run commands from
 this skill directory; pass the user's files by absolute path.
+
+SHACL engine (v0.3.1): Core shapes run in pyshacl and SHACL-SPARQL constraints (`sh:sparql`) in
+pyoxigraph. `DDS_SHACL_ENGINE=pyshacl` runs everything in pyshacl; without pyoxigraph installed the
+validator falls back to pyshacl.
 
 ## 1. Choose the path
 

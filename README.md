@@ -208,6 +208,8 @@ skills/document-design-system/
 
 ## Versions
 
+- **v0.3.1** — SHACL-SPARQL constraints run on pyoxigraph (Core shapes stay on pyshacl); test suite
+  about 8x faster. `DDS_SHACL_ENGINE=pyshacl` restores the previous engine.
 - **v0.3.0** — DocumentFrames, deliberation semantics and relations, provenance, depth / order rules,
   per-criterion evaluation, Frame evolution, cost-aware semantic checks on local runtimes.
 - **v0.2.0** — component libraries and generated builders; TTL as the only authoring format.

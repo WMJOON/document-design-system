@@ -69,7 +69,7 @@ def test_example_document_conforms():
 
 def test_ontology_version():
     g = load_tbox()
-    assert (URIRef("https://example.org/ontology/dds"), OWL.versionInfo, Literal("0.3.0")) in g
+    assert (URIRef("https://example.org/ontology/dds"), OWL.versionInfo, Literal("0.3.1")) in g
 
 
 # The v0.2.0 DesignSystem contract must not change (v0.3.0 adds DeliberationSystem instead).
